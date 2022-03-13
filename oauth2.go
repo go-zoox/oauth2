@@ -15,7 +15,6 @@ func New(config Config, options ...interface{}) (*OAuth2, error) {
 	for _, op := range options {
 		switch op.(type) {
 		case Logger:
-			op.(Logger).Info("resign logger")
 			logger = op.(Logger)
 		}
 	}
