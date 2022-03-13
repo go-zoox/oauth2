@@ -60,4 +60,7 @@ func (oa *OAuth2) Callback(code, state string, cb func(user *User, token *Token,
 	cb(user, token, nil)
 }
 
-// parts
+// logout
+func (oa *OAuth2) Logout(state string, callback func(loginUrl string)) {
+	callback(oa.GetLogoutUrl())
+}
