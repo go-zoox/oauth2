@@ -2,7 +2,7 @@ package doreamon
 
 import "github.com/go-zoox/oauth2"
 
-func New(clientId, clientSecret, redirectUri string) (*oauth2.OAuth2, error) {
+func New(clientId, clientSecret, redirectUri string) (*oauth2.Client, error) {
 	config := oauth2.Config{
 		Name:         "哆啦A梦",
 		AuthUrl:      "https://login.zcorky.com/authorize",
