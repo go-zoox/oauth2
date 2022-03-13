@@ -36,6 +36,8 @@ type Config struct {
 	NicknameAttributeName string
 	// User.avatar, default: avatar
 	AvatarAttributeName string
+	// User.homepage, default: homepage
+	HomepageAttributeName string
 	// User.permissions, default: permissions
 	PermissionsAttributeName string
 	// User.groups, default: groups
@@ -114,6 +116,10 @@ func ApplyDefaultConfig(config *Config) (err error) {
 
 	if config.AvatarAttributeName == "" {
 		config.AvatarAttributeName = "avatar"
+	}
+
+	if config.HomepageAttributeName == "" {
+		config.HomepageAttributeName = "homepage"
 	}
 
 	if config.PermissionsAttributeName == "" {

@@ -23,6 +23,7 @@ func New(clientId, clientSecret, redirectUri string) (*oauth2.OAuth2, error) {
 		IdAttributeName:       "login",
 		NicknameAttributeName: "name",
 		AvatarAttributeName:   "avatar_url",
+		HomepageAttributeName: "html_url",
 	}
 
 	return oauth2.New(config)
