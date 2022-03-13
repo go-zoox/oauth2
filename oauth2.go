@@ -60,6 +60,6 @@ func (oa *Client) Callback(code, state string, cb func(user *User, token *Token,
 }
 
 // logout
-func (oa *Client) Logout(state string, callback func(loginUrl string)) {
+func (oa *Client) Logout(callback func(loginUrl string)) {
 	callback(oa.GetLogoutUrl())
 }
