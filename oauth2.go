@@ -4,14 +4,14 @@ import (
 	"errors"
 )
 
-type OAuth2 struct {
+type Client struct {
 	Config
 	StepCallback
 }
 
 var logger Logger = &DefaultLogger{}
 
-func New(config Config, options ...interface{}) (*OAuth2, error) {
+func New(config Config, options ...interface{}) (*Client, error) {
 	for _, op := range options {
 		switch op.(type) {
 		case Logger:
@@ -27,18 +27,18 @@ func New(config Config, options ...interface{}) (*OAuth2, error) {
 		return nil, err
 	}
 
-	return &OAuth2{
+	return &Client{
 		Config: config,
 	}, nil
 }
 
 // => authorize
-func (oa *OAuth2) Authorize(state string, callback func(loginUrl string)) {
+func (oa *Client) Authorize(state string, callback func(loginUrl string)) {
 	callback(oa.GetLoginUrl(state))
 }
 
 // <= callback
-func (oa *OAuth2) Callback(code, state string, cb func(user *User, token *Token, err error)) {
+func (oa *Client) Callback(code, state string, cb func(user *User, token *Token, err error)) {
 	if len(code) == 0 || len(state) == 0 {
 		cb(nil, nil, errors.New("invalid oauth2 login callback, code or state are required"))
 		return
@@ -60,6 +60,6 @@ func (oa *OAuth2) Callback(code, state string, cb func(user *User, token *Token,
 }
 
 // logout
-func (oa *OAuth2) Logout(state string, callback func(loginUrl string)) {
+func (oa *Client) Logout(state string, callback func(loginUrl string)) {
 	callback(oa.GetLogoutUrl())
 }
