@@ -2,9 +2,8 @@ package oauth2
 
 import (
 	"errors"
-	"io/ioutil"
-	"net/http"
 
+	"github.com/go-zoox/fetch"
 	"github.com/tidwall/gjson"
 )
 
@@ -23,28 +22,19 @@ func GetUser(config *Config, token *Token) (*User, error) {
 	// oauth2_provider_userinfo_url := "https://httpbin.zcorky.com/get"
 	oauth2_provider_userinfo_url := config.UserInfoUrl
 
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", oauth2_provider_userinfo_url, nil)
+	response, err := fetch.Get(oauth2_provider_userinfo_url, &fetch.Config{
+		Headers: map[string]string{
+			"Authorization": "Bearer " + token.AccessToken,
+		},
+	})
 	if err != nil {
-		return nil, errors.New("get user info error(1): " + err.Error())
+		return nil, errors.New("get user info error: " + err.Error())
 	}
 
-	req.Header.Set("Authorization", "Bearer "+token.AccessToken)
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, errors.New("get user info error(2): " + err.Error())
-	}
-	defer resp.Body.Close()
+	logger.Info("[getUser]:", response.String())
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, errors.New("get user info error(3): " + err.Error())
-	}
-
-	logger.Info("[getUser]:", string(body))
-
-	error_code := gjson.Get(string(body), "code").Int()
-	error_message := gjson.Get(string(body), "message").String()
+	error_code := response.Get("code").Int()
+	error_message := response.Get("message").String()
 	if error_code != 0 {
 		return nil, errors.New("get user info error(4): " + error_message)
 	}
@@ -56,19 +46,19 @@ func GetUser(config *Config, token *Token) (*User, error) {
 	oauth2_permissions_attribute_name := config.PermissionsAttributeName
 	oauth2_groups_attribute_name := config.GroupsAttributeName
 
-	user.Id = gjson.Get(string(body), oauth2_email_attribute_name).String()
-	user.Email = gjson.Get(string(body), oauth2_id_attribute_name).String()
-	user.Nickname = gjson.Get(string(body), oauth2_nickname_attribute_name).String()
-	user.Avatar = gjson.Get(string(body), oauth2_avatar_attribute_name).String()
+	user.Id = response.Get(oauth2_email_attribute_name).String()
+	user.Email = response.Get(oauth2_id_attribute_name).String()
+	user.Nickname = response.Get(oauth2_nickname_attribute_name).String()
+	user.Avatar = response.Get(oauth2_avatar_attribute_name).String()
 	user.Permissions = make([]string, 0)
 
-	permissionsResult := gjson.Get(string(body), oauth2_permissions_attribute_name)
+	permissionsResult := response.Get(oauth2_permissions_attribute_name)
 	permissionsResult.ForEach(func(key, value gjson.Result) bool {
 		user.Permissions = append(user.Permissions, value.String())
 		return true
 	})
 
-	groupsResult := gjson.Get(string(body), oauth2_groups_attribute_name)
+	groupsResult := response.Get(oauth2_groups_attribute_name)
 	groupsResult.ForEach(func(key, value gjson.Result) bool {
 		user.Groups = append(user.Groups, value.String())
 		return true

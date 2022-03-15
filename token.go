@@ -2,12 +2,8 @@ package oauth2
 
 import (
 	"errors"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"strings"
 
-	"github.com/tidwall/gjson"
+	"github.com/go-zoox/fetch"
 )
 
 type Token struct {
@@ -31,32 +27,52 @@ func GetToken(config *Config, code string, state string) (*Token, error) {
 	oauth2_expires_in_attribute_name := config.ExpiresInAttributeName
 	oauth2_token_type_attribute_name := config.TokenTypeAttributeName
 
-	client := &http.Client{}
-	req, err := http.NewRequest("POST", oauth2_provider_token_url, strings.NewReader(url.Values{
-		"client_id":     {oauth2_client_id},
-		"client_secret": {oauth2_client_secret},
-		"grant_type":    {"authorization_code"},
-		"redirect_uri":  {oauth2_redirect_uri},
-		"code":          {code},
-		"state":         {state},
-	}.Encode()))
+	// client := &http.Client{}
+	// req, err := http.NewRequest("POST", oauth2_provider_token_url, strings.NewReader(url.Values{
+	// 	"client_id":     {oauth2_client_id},
+	// 	"client_secret": {oauth2_client_secret},
+	// 	"grant_type":    {"authorization_code"},
+	// 	"redirect_uri":  {oauth2_redirect_uri},
+	// 	"code":          {code},
+	// 	"state":         {state},
+	// }.Encode()))
+	// if err != nil {
+	// 	return nil, errors.New("get access token error by code (1): " + err.Error())
+	// }
+
+	// req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// req.Header.Set("Accept", "application/json")
+	// resp, err := client.Do(req)
+	// if err != nil {
+	// 	return nil, errors.New("get access token error by code (2): " + err.Error())
+	// }
+	// defer resp.Body.Close()
+	// body, err := ioutil.ReadAll(resp.Body)
+
+	// logger.Info("[getToken]:", string(body))
+
+	response, err := fetch.Post(oauth2_provider_token_url, &fetch.Config{
+		Headers: map[string]string{
+			"Content-Type": "application/x-www-form-urlencoded",
+			"Accept":       "application/json",
+		},
+		Body: map[string]interface{}{
+			"client_id":     oauth2_client_id,
+			"client_secret": oauth2_client_secret,
+			"grant_type":    "authorization_code",
+			"redirect_uri":  oauth2_redirect_uri,
+			"code":          code,
+			"state":         state,
+		},
+	})
 	if err != nil {
-		return nil, errors.New("get access token error by code (1): " + err.Error())
+		return nil, errors.New("get access token error by code (3): " + err.Error())
 	}
 
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Accept", "application/json")
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, errors.New("get access token error by code (2): " + err.Error())
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	logger.Info("[getToken]:", response.String())
 
-	logger.Info("[getToken]:", string(body))
-
-	error_code := gjson.Get(string(body), "code").Int()
-	error_message := gjson.Get(string(body), "message").String()
+	error_code := response.Get("code").Int()
+	error_message := response.Get("message").String()
 	if error_code == 5003002 {
 		return nil, errors.New("code is expired: " + error_message)
 	} else if error_code != 0 {
@@ -64,10 +80,10 @@ func GetToken(config *Config, code string, state string) (*Token, error) {
 	}
 
 	//
-	access_token := gjson.Get(string(body), oauth2_access_token_attribute_name).String()
-	refresh_token := gjson.Get(string(body), oauth2_refresh_token_attribute_name).String()
-	expires_in := gjson.Get(string(body), oauth2_expires_in_attribute_name).Int()
-	token_type := gjson.Get(string(body), oauth2_token_type_attribute_name).String()
+	access_token := response.Get(oauth2_access_token_attribute_name).String()
+	refresh_token := response.Get(oauth2_refresh_token_attribute_name).String()
+	expires_in := response.Get(oauth2_expires_in_attribute_name).Int()
+	token_type := response.Get(oauth2_token_type_attribute_name).String()
 
 	token.AccessToken = access_token
 	token.RefreshToken = refresh_token
