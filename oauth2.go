@@ -32,12 +32,16 @@ func New(config Config, options ...interface{}) (*Client, error) {
 	}, nil
 }
 
-// => authorize
+// Authorize is the first step of login
+// means redirect to oauth server authorize page
 func (oa *Client) Authorize(state string, callback func(loginUrl string)) {
 	callback(oa.GetLoginUrl(state))
 }
 
-// <= callback
+// Callback is the second step of login,
+// means oauth server visit callback url with code.
+// And we will get access_token and refresh_token with the code.
+// Then we can use access_token to get user info.
 func (oa *Client) Callback(code, state string, cb func(user *User, token *Token, err error)) {
 	if len(code) == 0 || len(state) == 0 {
 		cb(nil, nil, errors.New("invalid oauth2 login callback, code or state are required"))
@@ -59,7 +63,7 @@ func (oa *Client) Callback(code, state string, cb func(user *User, token *Token,
 	cb(user, token, nil)
 }
 
-// logout
-func (oa *Client) Logout(callback func(loginUrl string)) {
+// Logout just to logout the user
+func (oa *Client) Logout(callback func(logoutUrl string)) {
 	callback(oa.GetLogoutUrl())
 }
