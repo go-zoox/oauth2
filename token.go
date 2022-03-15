@@ -56,7 +56,7 @@ func GetToken(config *Config, code string, state string) (*Token, error) {
 			"Content-Type": "application/x-www-form-urlencoded",
 			"Accept":       "application/json",
 		},
-		Body: map[string]interface{}{
+		Body: map[string]string{
 			"client_id":     oauth2_client_id,
 			"client_secret": oauth2_client_secret,
 			"grant_type":    "authorization_code",
