@@ -2,16 +2,16 @@ package github
 
 import "github.com/go-zoox/oauth2"
 
-func New(clientId, clientSecret, redirectUri string) (*oauth2.Client, error) {
+func New(clientID, clientSecret, redirectURI string) (*oauth2.Client, error) {
 	config := oauth2.Config{
 		Name:         "哆啦A梦",
-		AuthUrl:      "https://github.com/login/oauth/authorize",
-		TokenUrl:     "https://github.com/login/oauth/access_token",
-		UserInfoUrl:  "https://api.github.com/user",
-		LogoutUrl:    "https://github.com/logout",
+		AuthURL:      "https://github.com/login/oauth/authorize",
+		TokenURL:     "https://github.com/login/oauth/access_token",
+		UserInfoURL:  "https://api.github.com/user",
+		LogoutURL:    "https://github.com/logout",
 		Scope:        "user",
-		RedirectUri:  redirectUri,
-		ClientId:     clientId,
+		RedirectURI:  redirectURI,
+		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		//
 		AccessTokenAttributeName:  "access_token",
@@ -20,7 +20,7 @@ func New(clientId, clientSecret, redirectUri string) (*oauth2.Client, error) {
 		TokenTypeAttributeName:    "token_type",
 		//
 		EmailAttributeName:    "email",
-		IdAttributeName:       "login",
+		IDAttributeName:       "login",
 		NicknameAttributeName: "name",
 		AvatarAttributeName:   "avatar_url",
 		HomepageAttributeName: "html_url",

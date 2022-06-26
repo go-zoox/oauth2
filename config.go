@@ -6,17 +6,18 @@ import (
 	"strings"
 )
 
+// Config is the OAuth2 config.
 type Config struct {
 	Name        string
-	AuthUrl     string
-	TokenUrl    string
-	UserInfoUrl string
-	LogoutUrl   string
+	AuthURL     string
+	TokenURL    string
+	UserInfoURL string
+	LogoutURL   string
 	// callback url = server url + callback path, example: https://example.com/login/callback
-	RedirectUri string
+	RedirectURI string
 	Scope       string
 	//
-	ClientId     string
+	ClientID     string
 	ClientSecret string
 
 	// Token.access_token, default: access_token
@@ -31,7 +32,7 @@ type Config struct {
 	// User.email, default: email
 	EmailAttributeName string
 	// User.id, default: id
-	IdAttributeName string
+	IDAttributeName string
 	// User.nickname, default: nickname
 	NicknameAttributeName string
 	// User.avatar, default: avatar
@@ -44,16 +45,16 @@ type Config struct {
 	GroupsAttributeName string
 }
 
-// Get The Authorize Url
+// GetLoginURL gets the authorize url.
 //
 // Example: https://login.example.com/authorize?client_id=CLIENT_ID&redirect_uri=https%3A%2F%2Fabc.com%2Flogin%2Fcallback&response_type=code&scope=openid&state=anything
-func (oac *Config) GetLoginUrl(state string) string {
+func (oac *Config) GetLoginURL(state string) string {
 	if state == "" {
 		state = "anything"
 	}
 
-	clientId := oac.ClientId
-	redirectUri := oac.RedirectUri // oac.ServerUrl + "/login/callback"
+	clientID := oac.ClientID
+	redirectURI := oac.RedirectURI // oac.ServerUrl + "/login/callback"
 	responseType := "code"
 	scope := oac.Scope
 
@@ -62,29 +63,30 @@ func (oac *Config) GetLoginUrl(state string) string {
 	}
 
 	return strings.Join([]string{
-		oac.AuthUrl,
-		"?client_id=", clientId,
-		"&redirect_uri=", url.QueryEscape(redirectUri),
+		oac.AuthURL,
+		"?client_id=", clientID,
+		"&redirect_uri=", url.QueryEscape(redirectURI),
 		"&response_type=", responseType,
 		"&scope=", url.QueryEscape(scope),
 		"&state=", url.QueryEscape(state),
 	}, "")
 }
 
-// Get The Logout Url
+// GetLogoutURL gets the logout url.
 //
 // Example: https://login.example.com/logout?client_id=CLIENT_ID&redirect_uri=https%3A%2F%2Fabc.com%2Flogin/callback
-func (oac *Config) GetLogoutUrl() string {
-	clientId := oac.ClientId
-	redirectUri := oac.RedirectUri // oac.ServerUrl + "/login/callback"
+func (oac *Config) GetLogoutURL() string {
+	clientID := oac.ClientID
+	redirectURI := oac.RedirectURI // oac.ServerUrl + "/login/callback"
 
 	return strings.Join([]string{
-		oac.LogoutUrl,
-		"?client_id=", clientId,
-		"&redirect_uri=", url.QueryEscape(redirectUri),
+		oac.LogoutURL,
+		"?client_id=", clientID,
+		"&redirect_uri=", url.QueryEscape(redirectURI),
 	}, "")
 }
 
+// ApplyDefaultConfig applies the default config.
 func ApplyDefaultConfig(config *Config) (err error) {
 	if config.AccessTokenAttributeName == "" {
 		config.AccessTokenAttributeName = "access_token"
@@ -106,8 +108,8 @@ func ApplyDefaultConfig(config *Config) (err error) {
 		config.EmailAttributeName = "email"
 	}
 
-	if config.IdAttributeName == "" {
-		config.IdAttributeName = "id"
+	if config.IDAttributeName == "" {
+		config.IDAttributeName = "id"
 	}
 
 	if config.NicknameAttributeName == "" {
@@ -133,25 +135,26 @@ func ApplyDefaultConfig(config *Config) (err error) {
 	return
 }
 
+// ValidateConfig validates the config.
 func ValidateConfig(config *Config) error {
-	if config.AuthUrl == "" {
-		panic(ErrConfigAuthUrlEmpty)
+	if config.AuthURL == "" {
+		panic(ErrConfigAuthURLEmpty)
 	}
 
-	if config.TokenUrl == "" {
-		panic(ErrConfigTokenUrlEmpty)
+	if config.TokenURL == "" {
+		panic(ErrConfigTokenURLEmpty)
 	}
 
-	if config.UserInfoUrl == "" {
-		panic(ErrConfigUserInfoUrlEmpty)
+	if config.UserInfoURL == "" {
+		panic(ErrConfigUserInfoURLEmpty)
 	}
 
-	if config.RedirectUri == "" {
-		panic(ErrConfigRedirectUriEmpty)
+	if config.RedirectURI == "" {
+		panic(ErrConfigRedirectURIEmpty)
 	}
 
-	if config.ClientId == "" {
-		panic(ErrConfigClientIdEmpty)
+	if config.ClientID == "" {
+		panic(ErrConfigClientIDEmpty)
 	}
 
 	if config.ClientSecret == "" {
@@ -161,11 +164,22 @@ func ValidateConfig(config *Config) error {
 	return nil
 }
 
-var ErrConfigAuthUrlEmpty = errors.New("oauth2: config auth url is empty")
-var ErrConfigTokenUrlEmpty = errors.New("oauth2: config token url is empty")
-var ErrConfigUserInfoUrlEmpty = errors.New("oauth2: config user info url is empty")
-var ErrConfigRedirectUriEmpty = errors.New("oauth2: config redirect uri is empty")
-var ErrConfigClientIdEmpty = errors.New("oauth2: config client id is empty")
+// ErrConfigAuthURLEmpty is the error of AuthURL is empty.
+var ErrConfigAuthURLEmpty = errors.New("oauth2: config auth url is empty")
+
+// ErrConfigTokenURLEmpty is the error of TokenURL is empty.
+var ErrConfigTokenURLEmpty = errors.New("oauth2: config token url is empty")
+
+// ErrConfigUserInfoURLEmpty is the error of UserInfoURL is empty.
+var ErrConfigUserInfoURLEmpty = errors.New("oauth2: config user info url is empty")
+
+// ErrConfigRedirectURIEmpty is the error of RedirectURI is empty.
+var ErrConfigRedirectURIEmpty = errors.New("oauth2: config redirect uri is empty")
+
+// ErrConfigClientIDEmpty is the error of ClientID is empty.
+var ErrConfigClientIDEmpty = errors.New("oauth2: config client id is empty")
+
+// ErrConfigClientSecretEmpty is the error of ClientSecret is empty.
 var ErrConfigClientSecretEmpty = errors.New("oauth2: config client secret is empty")
 
 // var ErrConfigScopeEmpty = errors.New("oauth2: config scope is empty")

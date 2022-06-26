@@ -4,8 +4,10 @@ import (
 	"errors"
 
 	"github.com/go-zoox/fetch"
+	"github.com/go-zoox/logger"
 )
 
+// Token is the oauth2 token.
 type Token struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
@@ -13,54 +15,30 @@ type Token struct {
 	TokenType    string `json:"token_type"`
 }
 
+// GetToken gets the token by code and state.
 func GetToken(config *Config, code string, state string) (*Token, error) {
 	token := &Token{}
 
-	// oauth2_provider_token_url := "https://httpbin.zcorky.com/post"
-	oauth2_provider_token_url := config.TokenUrl
-	oauth2_client_id := config.ClientId
-	oauth2_client_secret := config.ClientSecret
-	oauth2_redirect_uri := config.RedirectUri
+	oauth2ProviderTokenURL := config.TokenURL
+	oauth2ClientID := config.ClientID
+	oauth2ClientSecret := config.ClientSecret
+	oauth2RedirectURI := config.RedirectURI
 	//
-	oauth2_access_token_attribute_name := config.AccessTokenAttributeName
-	oauth2_refresh_token_attribute_name := config.RefreshTokenAttributeName
-	oauth2_expires_in_attribute_name := config.ExpiresInAttributeName
-	oauth2_token_type_attribute_name := config.TokenTypeAttributeName
+	oauth2AccessTokenAttributeName := config.AccessTokenAttributeName
+	oauth2RefreshTokenAttributeName := config.RefreshTokenAttributeName
+	oauth2ExpiresInAttributeName := config.ExpiresInAttributeName
+	oauth2TokenTypeAttributeName := config.TokenTypeAttributeName
 
-	// client := &http.Client{}
-	// req, err := http.NewRequest("POST", oauth2_provider_token_url, strings.NewReader(url.Values{
-	// 	"client_id":     {oauth2_client_id},
-	// 	"client_secret": {oauth2_client_secret},
-	// 	"grant_type":    {"authorization_code"},
-	// 	"redirect_uri":  {oauth2_redirect_uri},
-	// 	"code":          {code},
-	// 	"state":         {state},
-	// }.Encode()))
-	// if err != nil {
-	// 	return nil, errors.New("get access token error by code (1): " + err.Error())
-	// }
-
-	// req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	// req.Header.Set("Accept", "application/json")
-	// resp, err := client.Do(req)
-	// if err != nil {
-	// 	return nil, errors.New("get access token error by code (2): " + err.Error())
-	// }
-	// defer resp.Body.Close()
-	// body, err := ioutil.ReadAll(resp.Body)
-
-	// logger.Info("[getToken]:", string(body))
-
-	response, err := fetch.Post(oauth2_provider_token_url, &fetch.Config{
+	response, err := fetch.Post(oauth2ProviderTokenURL, &fetch.Config{
 		Headers: map[string]string{
 			"Content-Type": "application/x-www-form-urlencoded",
 			"Accept":       "application/json",
 		},
 		Body: map[string]string{
-			"client_id":     oauth2_client_id,
-			"client_secret": oauth2_client_secret,
+			"client_id":     oauth2ClientID,
+			"client_secret": oauth2ClientSecret,
 			"grant_type":    "authorization_code",
-			"redirect_uri":  oauth2_redirect_uri,
+			"redirect_uri":  oauth2RedirectURI,
 			"code":          code,
 			"state":         state,
 		},
@@ -69,26 +47,26 @@ func GetToken(config *Config, code string, state string) (*Token, error) {
 		return nil, errors.New("get access token error by code (3): " + err.Error())
 	}
 
-	logger.Info("[getToken]:", response.String())
+	logger.Info("[oauth2][getToken]: %s", response.String())
 
-	error_code := response.Get("code").Int()
-	error_message := response.Get("message").String()
-	if error_code == 5003002 {
-		return nil, errors.New("code is expired: " + error_message)
-	} else if error_code != 0 {
+	errorCode := response.Get("code").Int()
+	errorMessage := response.Get("message").String()
+	if errorCode == 5003002 {
+		return nil, errors.New("code is expired: " + errorMessage)
+	} else if errorCode != 0 {
 		return nil, errors.New("get access token error by code (3): " + err.Error())
 	}
 
 	//
-	access_token := response.Get(oauth2_access_token_attribute_name).String()
-	refresh_token := response.Get(oauth2_refresh_token_attribute_name).String()
-	expires_in := response.Get(oauth2_expires_in_attribute_name).Int()
-	token_type := response.Get(oauth2_token_type_attribute_name).String()
+	accessToken := response.Get(oauth2AccessTokenAttributeName).String()
+	refreshToken := response.Get(oauth2RefreshTokenAttributeName).String()
+	expiresIn := response.Get(oauth2ExpiresInAttributeName).Int()
+	tokenType := response.Get(oauth2TokenTypeAttributeName).String()
 
-	token.AccessToken = access_token
-	token.RefreshToken = refresh_token
-	token.ExpiresIn = expires_in
-	token.TokenType = token_type
+	token.AccessToken = accessToken
+	token.RefreshToken = refreshToken
+	token.ExpiresIn = expiresIn
+	token.TokenType = tokenType
 
 	return token, nil
 }

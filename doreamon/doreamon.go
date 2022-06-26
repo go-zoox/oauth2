@@ -2,16 +2,16 @@ package doreamon
 
 import "github.com/go-zoox/oauth2"
 
-func New(clientId, clientSecret, redirectUri string) (*oauth2.Client, error) {
+func New(clientID, clientSecret, redirectURI string) (*oauth2.Client, error) {
 	config := oauth2.Config{
 		Name:         "哆啦A梦",
-		AuthUrl:      "https://login.zcorky.com/authorize",
-		TokenUrl:     "https://login.zcorky.com/token",
-		UserInfoUrl:  "https://login.zcorky.com/user",
-		LogoutUrl:    "https://login.zcorky.com/logout",
+		AuthURL:      "https://login.zcorky.com/authorize",
+		TokenURL:     "https://login.zcorky.com/token",
+		UserInfoURL:  "https://login.zcorky.com/user",
+		LogoutURL:    "https://login.zcorky.com/logout",
 		Scope:        "openid email profile",
-		RedirectUri:  redirectUri,
-		ClientId:     clientId,
+		RedirectURI:  redirectURI,
+		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		//
 		AccessTokenAttributeName:  "access_token",
@@ -19,7 +19,7 @@ func New(clientId, clientSecret, redirectUri string) (*oauth2.Client, error) {
 		ExpiresInAttributeName:    "expires_in",
 		TokenTypeAttributeName:    "token_type",
 		EmailAttributeName:        "email",
-		IdAttributeName:           "email",
+		IDAttributeName:           "email",
 		NicknameAttributeName:     "nickname",
 		AvatarAttributeName:       "avatar",
 		PermissionsAttributeName:  "permissions",

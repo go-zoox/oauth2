@@ -4,21 +4,14 @@ import (
 	"errors"
 )
 
+// Client is the OAuth2 Client.
 type Client struct {
 	Config
 	StepCallback
 }
 
-var logger Logger = &DefaultLogger{}
-
+// New creates a OAuth2 Client.
 func New(config Config, options ...interface{}) (*Client, error) {
-	for _, op := range options {
-		switch op.(type) {
-		case Logger:
-			logger = op.(Logger)
-		}
-	}
-
 	if err := ValidateConfig(&config); err != nil {
 		return nil, err
 	}
@@ -35,7 +28,7 @@ func New(config Config, options ...interface{}) (*Client, error) {
 // Authorize is the first step of login
 // means redirect to oauth server authorize page
 func (oa *Client) Authorize(state string, callback func(loginUrl string)) {
-	callback(oa.GetLoginUrl(state))
+	callback(oa.GetLoginURL(state))
 }
 
 // Callback is the second step of login,
@@ -65,5 +58,5 @@ func (oa *Client) Callback(code, state string, cb func(user *User, token *Token,
 
 // Logout just to logout the user
 func (oa *Client) Logout(callback func(logoutUrl string)) {
-	callback(oa.GetLogoutUrl())
+	callback(oa.GetLogoutURL())
 }
