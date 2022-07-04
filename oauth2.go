@@ -47,7 +47,7 @@ func (oa *Client) Callback(code, state string, cb func(user *User, token *Token,
 		return
 	}
 
-	user, err := oa.GetUser(&oa.Config, token)
+	user, err := oa.GetUser(&oa.Config, token, code)
 	if err != nil {
 		cb(nil, token, err)
 		return

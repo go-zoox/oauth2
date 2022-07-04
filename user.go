@@ -19,17 +19,23 @@ type User struct {
 }
 
 // GetUser gets the user by token.
-func GetUser(config *Config, token *Token) (*User, error) {
+func GetUser(config *Config, token *Token, code string) (*User, error) {
 	user := &User{}
 
 	// oauth2ProviderUserinfoURL := "https://httpbin.zcorky.com/get"
 	oauth2ProviderUserinfoURL := config.UserInfoURL
 
-	response, err := fetch.Get(oauth2ProviderUserinfoURL, &fetch.Config{
-		Headers: map[string]string{
-			"Authorization": "Bearer " + token.AccessToken,
-		},
-	})
+	var response *fetch.Response
+	var err error
+	if config.GetUserResponse != nil {
+		response, err = config.GetUserResponse(config, token, code)
+	} else {
+		response, err = fetch.Get(oauth2ProviderUserinfoURL, &fetch.Config{
+			Headers: map[string]string{
+				"Authorization": "Bearer " + token.AccessToken,
+			},
+		})
+	}
 	if err != nil {
 		return nil, errors.New("get user info error: " + err.Error())
 	}
@@ -42,26 +48,19 @@ func GetUser(config *Config, token *Token) (*User, error) {
 		return nil, errors.New("get user info error(4): " + errorMessage)
 	}
 
-	oauth2EmailAttributeName := config.EmailAttributeName
-	oauth2IDAttributeName := config.IDAttributeName
-	oauth2NicknameAttributeName := config.NicknameAttributeName
-	oauth2AvatarAttributeName := config.AvatarAttributeName
-	oauth2PermissionsAttributeName := config.PermissionsAttributeName
-	oauth2GroupsAttributeName := config.GroupsAttributeName
-
-	user.ID = response.Get(oauth2EmailAttributeName).String()
-	user.Email = response.Get(oauth2IDAttributeName).String()
-	user.Nickname = response.Get(oauth2NicknameAttributeName).String()
-	user.Avatar = response.Get(oauth2AvatarAttributeName).String()
+	user.ID = response.Get(config.IDAttributeName).String()
+	user.Email = response.Get(config.EmailAttributeName).String()
+	user.Nickname = response.Get(config.NicknameAttributeName).String()
+	user.Avatar = response.Get(config.AvatarAttributeName).String()
 	user.Permissions = make([]string, 0)
 
-	permissionsResult := response.Get(oauth2PermissionsAttributeName)
+	permissionsResult := response.Get(config.PermissionsAttributeName)
 	permissionsResult.ForEach(func(key, value gjson.Result) bool {
 		user.Permissions = append(user.Permissions, value.String())
 		return true
 	})
 
-	groupsResult := response.Get(oauth2GroupsAttributeName)
+	groupsResult := response.Get(config.GroupsAttributeName)
 	groupsResult.ForEach(func(key, value gjson.Result) bool {
 		user.Groups = append(user.Groups, value.String())
 		return true

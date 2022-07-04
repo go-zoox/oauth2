@@ -29,20 +29,26 @@ func GetToken(config *Config, code string, state string) (*Token, error) {
 	oauth2ExpiresInAttributeName := config.ExpiresInAttributeName
 	oauth2TokenTypeAttributeName := config.TokenTypeAttributeName
 
-	response, err := fetch.Post(oauth2ProviderTokenURL, &fetch.Config{
-		Headers: map[string]string{
-			"Content-Type": "application/x-www-form-urlencoded",
-			"Accept":       "application/json",
-		},
-		Body: map[string]string{
-			"client_id":     oauth2ClientID,
-			"client_secret": oauth2ClientSecret,
-			"grant_type":    "authorization_code",
-			"redirect_uri":  oauth2RedirectURI,
-			"code":          code,
-			"state":         state,
-		},
-	})
+	var response *fetch.Response
+	var err error
+	if config.GetAccessTokenResponse != nil {
+		response, err = config.GetAccessTokenResponse(config, code, state)
+	} else {
+		response, err = fetch.Post(oauth2ProviderTokenURL, &fetch.Config{
+			Headers: map[string]string{
+				"Content-Type": "application/x-www-form-urlencoded",
+				"Accept":       "application/json",
+			},
+			Body: map[string]string{
+				"client_id":     oauth2ClientID,
+				"client_secret": oauth2ClientSecret,
+				"grant_type":    "authorization_code",
+				"redirect_uri":  oauth2RedirectURI,
+				"code":          code,
+				"state":         state,
+			},
+		})
+	}
 	if err != nil {
 		return nil, errors.New("get access token error by code (3): " + err.Error())
 	}

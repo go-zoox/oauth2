@@ -21,8 +21,8 @@ func (oa *StepCallback) GetToken(config *Config, code, state string) (*Token, er
 }
 
 // GetUser gets the user by token.
-func (oa *StepCallback) GetUser(config *Config, token *Token) (*User, error) {
-	user, err := GetUser(config, token)
+func (oa *StepCallback) GetUser(config *Config, token *Token, code string) (*User, error) {
+	user, err := GetUser(config, token, code)
 	if err != nil {
 		return nil, err
 	}

@@ -4,7 +4,7 @@ import "github.com/go-zoox/oauth2"
 
 func New(clientID, clientSecret, redirectURI string) (*oauth2.Client, error) {
 	config := oauth2.Config{
-		Name:         "哆啦A梦",
+		Name:         "GitHub",
 		AuthURL:      "https://github.com/login/oauth/authorize",
 		TokenURL:     "https://github.com/login/oauth/access_token",
 		UserInfoURL:  "https://api.github.com/user",

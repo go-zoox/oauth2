@@ -2,8 +2,11 @@ package oauth2
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 	"strings"
+
+	"github.com/go-zoox/fetch"
 )
 
 // Config is the OAuth2 config.
@@ -19,6 +22,14 @@ type Config struct {
 	//
 	ClientID     string
 	ClientSecret string
+
+	//
+	ClientIDAttributeName     string
+	ClientSecretAttributeName string
+	RedirectURIAttributeName  string
+	ResponseTypeAttributeName string
+	ScopeAttributeName        string
+	StateAttributeName        string
 
 	// Token.access_token, default: access_token
 	AccessTokenAttributeName string
@@ -43,6 +54,10 @@ type Config struct {
 	PermissionsAttributeName string
 	// User.groups, default: groups
 	GroupsAttributeName string
+
+	//
+	GetAccessTokenResponse func(cfg *Config, code string, state string) (*fetch.Response, error)
+	GetUserResponse        func(cfg *Config, token *Token, code string) (*fetch.Response, error)
 }
 
 // GetLoginURL gets the authorize url.
@@ -64,11 +79,11 @@ func (oac *Config) GetLoginURL(state string) string {
 
 	return strings.Join([]string{
 		oac.AuthURL,
-		"?client_id=", clientID,
-		"&redirect_uri=", url.QueryEscape(redirectURI),
-		"&response_type=", responseType,
-		"&scope=", url.QueryEscape(scope),
-		"&state=", url.QueryEscape(state),
+		fmt.Sprintf("?%s=", oac.ClientIDAttributeName), clientID,
+		fmt.Sprintf("&%s=", oac.RedirectURIAttributeName), url.QueryEscape(redirectURI),
+		fmt.Sprintf("&%s=", oac.ResponseTypeAttributeName), responseType,
+		fmt.Sprintf("&%s=", oac.ScopeAttributeName), url.QueryEscape(scope),
+		fmt.Sprintf("&%s=", oac.StateAttributeName), url.QueryEscape(state),
 	}, "")
 }
 
@@ -81,13 +96,37 @@ func (oac *Config) GetLogoutURL() string {
 
 	return strings.Join([]string{
 		oac.LogoutURL,
-		"?client_id=", clientID,
-		"&redirect_uri=", url.QueryEscape(redirectURI),
+		fmt.Sprintf("?%s=", oac.ClientIDAttributeName), clientID,
+		fmt.Sprintf("&%s=", oac.RedirectURIAttributeName), url.QueryEscape(redirectURI),
 	}, "")
 }
 
 // ApplyDefaultConfig applies the default config.
 func ApplyDefaultConfig(config *Config) (err error) {
+	if config.ClientIDAttributeName == "" {
+		config.ClientIDAttributeName = "client_id"
+	}
+
+	if config.ClientSecretAttributeName == "" {
+		config.ClientSecretAttributeName = "client_secret"
+	}
+
+	if config.RedirectURIAttributeName == "" {
+		config.RedirectURIAttributeName = "redirect_uri"
+	}
+
+	if config.ResponseTypeAttributeName == "" {
+		config.ResponseTypeAttributeName = "response_type"
+	}
+
+	if config.ScopeAttributeName == "" {
+		config.ScopeAttributeName = "scope"
+	}
+
+	if config.StateAttributeName == "" {
+		config.StateAttributeName = "state"
+	}
+
 	if config.AccessTokenAttributeName == "" {
 		config.AccessTokenAttributeName = "access_token"
 	}
