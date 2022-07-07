@@ -2,19 +2,25 @@ package doreamon
 
 import (
 	"github.com/go-zoox/oauth2"
-	"github.com/go-zoox/oauth2/config"
 )
 
 type DoreamonConfig struct {
-	config.Config
-	Version string
+	// config.Config
+	ClientID     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+	RedirectURI  string `json:"redirect_uri"`
+	Scope        string `json:"scope"`
+	Version      string `json:"version"`
 }
 
 func New(cfg *DoreamonConfig) (*oauth2.Client, error) {
 	authURL := "https://login.zcorky.com/authorize"
+	logoutURL := "https://login.zcorky.com/logout"
 	if cfg.Version != "" {
 		authURL = "https://login.zcorky.com/v2/authorize"
+		logoutURL = "https://login.zcorky.com/v2/logout"
 	}
+
 	scope := cfg.Scope
 	if scope == "" {
 		scope = "openid email profile"
@@ -25,7 +31,7 @@ func New(cfg *DoreamonConfig) (*oauth2.Client, error) {
 		AuthURL:      authURL,
 		TokenURL:     "https://login.zcorky.com/token",
 		UserInfoURL:  "https://login.zcorky.com/user",
-		LogoutURL:    "https://login.zcorky.com/logout",
+		LogoutURL:    logoutURL,
 		Scope:        scope,
 		RedirectURI:  cfg.RedirectURI,
 		ClientID:     cfg.ClientID,

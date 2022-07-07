@@ -2,11 +2,14 @@ package github
 
 import (
 	"github.com/go-zoox/oauth2"
-	"github.com/go-zoox/oauth2/config"
 )
 
 type GitHubConfig struct {
-	config.Config
+	// config.Config
+	ClientID     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+	RedirectURI  string `json:"redirect_uri"`
+	Scope        string `json:"scope"`
 }
 
 func New(cfg *GitHubConfig) (*oauth2.Client, error) {
