@@ -1,18 +1,35 @@
 package doreamon
 
-import "github.com/go-zoox/oauth2"
+import (
+	"github.com/go-zoox/oauth2"
+	"github.com/go-zoox/oauth2/config"
+)
 
-func New(clientID, clientSecret, redirectURI string) (*oauth2.Client, error) {
+type DoreamonConfig struct {
+	config.Config
+	Version string
+}
+
+func New(cfg *DoreamonConfig) (*oauth2.Client, error) {
+	authURL := "https://login.zcorky.com/authorize"
+	if cfg.Version != "" {
+		authURL = "https://login.zcorky.com/v2/authorize"
+	}
+	scope := cfg.Scope
+	if scope == "" {
+		scope = "openid email profile"
+	}
+
 	config := oauth2.Config{
 		Name:         "哆啦A梦",
-		AuthURL:      "https://login.zcorky.com/authorize",
+		AuthURL:      authURL,
 		TokenURL:     "https://login.zcorky.com/token",
 		UserInfoURL:  "https://login.zcorky.com/user",
 		LogoutURL:    "https://login.zcorky.com/logout",
-		Scope:        "openid email profile",
-		RedirectURI:  redirectURI,
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
+		Scope:        scope,
+		RedirectURI:  cfg.RedirectURI,
+		ClientID:     cfg.ClientID,
+		ClientSecret: cfg.ClientSecret,
 		//
 		AccessTokenAttributeName:  "access_token",
 		RefreshTokenAttributeName: "refresh_token",

@@ -1,18 +1,30 @@
 package github
 
-import "github.com/go-zoox/oauth2"
+import (
+	"github.com/go-zoox/oauth2"
+	"github.com/go-zoox/oauth2/config"
+)
 
-func New(clientID, clientSecret, redirectURI string) (*oauth2.Client, error) {
+type GitHubConfig struct {
+	config.Config
+}
+
+func New(cfg *GitHubConfig) (*oauth2.Client, error) {
+	scope := cfg.Scope
+	if scope == "" {
+		scope = "user:email"
+	}
+
 	config := oauth2.Config{
 		Name:         "GitHub",
 		AuthURL:      "https://github.com/login/oauth/authorize",
 		TokenURL:     "https://github.com/login/oauth/access_token",
 		UserInfoURL:  "https://api.github.com/user",
 		LogoutURL:    "https://github.com/logout",
-		Scope:        "user",
-		RedirectURI:  redirectURI,
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
+		Scope:        scope,
+		RedirectURI:  cfg.RedirectURI,
+		ClientID:     cfg.ClientID,
+		ClientSecret: cfg.ClientSecret,
 		//
 		AccessTokenAttributeName:  "access_token",
 		RefreshTokenAttributeName: "refresh_token",

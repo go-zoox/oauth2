@@ -5,19 +5,29 @@ import (
 
 	"github.com/go-zoox/fetch"
 	"github.com/go-zoox/oauth2"
+	"github.com/go-zoox/oauth2/config"
 )
 
-func New(clientID, clientSecret, redirectURI string) (*oauth2.Client, error) {
+type FeishuConfig struct {
+	config.Config
+}
+
+func New(cfg *FeishuConfig) (*oauth2.Client, error) {
+	scope := cfg.Scope
+	if scope == "" {
+		scope = "user:email"
+	}
+
 	config := oauth2.Config{
 		Name:         "飞书",
 		AuthURL:      "https://open.feishu.cn/open-apis/authen/v1/index",
 		TokenURL:     "https://open.feishu.cn/open-apis/authen/v1/access_token",
 		UserInfoURL:  "https://open.feishu.cn/open-apis/authen/v1/user_info",
 		LogoutURL:    "https://open.feishu.cn/open-apis/authen/v1/logout",
-		Scope:        "user",
-		RedirectURI:  redirectURI,
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
+		Scope:        scope,
+		RedirectURI:  cfg.RedirectURI,
+		ClientID:     cfg.ClientID,
+		ClientSecret: cfg.ClientSecret,
 		//
 		ClientIDAttributeName:     "app_id",
 		ClientSecretAttributeName: "app_secret",
