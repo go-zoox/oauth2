@@ -15,7 +15,7 @@ type FeishuConfig struct {
 	Scope        string `json:"scope"`
 }
 
-func New(cfg *FeishuConfig) (*oauth2.Client, error) {
+func New(cfg *FeishuConfig) (oauth2.Client, error) {
 	scope := cfg.Scope
 	if scope == "" {
 		scope = "user:email"

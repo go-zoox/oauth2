@@ -13,7 +13,7 @@ type DoreamonConfig struct {
 	Version      string `json:"version"`
 }
 
-func New(cfg *DoreamonConfig) (*oauth2.Client, error) {
+func New(cfg *DoreamonConfig) (oauth2.Client, error) {
 	authURL := "https://login.zcorky.com/authorize"
 	logoutURL := "https://login.zcorky.com/logout"
 	if cfg.Version != "" {
