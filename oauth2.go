@@ -4,6 +4,7 @@ import (
 	"errors"
 )
 
+// Client is the oauth2 client interface.
 type Client interface {
 	Authorize(state string, callback func(loginUrl string))
 	Callback(code, state string, cb func(user *User, token *Token, err error))

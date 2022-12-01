@@ -8,6 +8,7 @@ import (
 
 var clients = safe.NewMap()
 
+// Register registers a new oauth2 service provider.
 func Register(provider string, cfg *Config) error {
 	if provider == "" {
 		return fmt.Errorf("oauth2: provider is empty")
@@ -25,6 +26,7 @@ func Register(provider string, cfg *Config) error {
 	return nil
 }
 
+// Get gets the oauth2 service provider by name.
 func Get(provider string) (*Config, error) {
 	if provider == "" {
 		return nil, fmt.Errorf("oauth2: provider is empty")
