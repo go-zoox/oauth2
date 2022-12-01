@@ -15,135 +15,228 @@ go get github.com/go-zoox/oauth2
 
 ## Getting Started
 
-```go
-// config: oauth2/oauth2.go
-package oauth2
+### Example 1: Using only one oauth2 provider => doreamon
 
+```go
+// step1: create oauth2 middleware/handler
+// file: oauth2.go
 import (
-	"errors"
 	"log"
-	"strings"
+	"net/http"
+	"regexp"
+	"time"
+
+	"github.com/go-zoox/logger"
+	"github.com/go-zoox/oauth2"
+	"github.com/go-zoox/oauth2/doreamon"
 )
 
-type Client struct {
-	*oauth2.Client
+type CreateOAuth2DoreamonHandlerConfig struct {
+	ClientID     string
+	ClientSecret string
+	RedirectURI  string
 }
 
-func New() *Client {
-	client, err := oauth2.New(oauth2.Config{
-		Name:                      conf.Oauth2.Name,
-		AuthUrl:                   conf.Oauth2.AuthUrl,
-		TokenUrl:                  conf.Oauth2.TokenUrl,
-		UserInfoUrl:               conf.Oauth2.UserInfoUrl,
-		LogoutUrl:                 conf.Oauth2.LogoutUrl,
-		RedirectUri:               conf.Oauth2.ServerUrl + "/login/callback",
-		Scope:                     conf.Oauth2.Scope,
-		ClientId:                  conf.Oauth2.ClientId,
-		ClientSecret:              conf.Oauth2.ClientSecret,
-		AccessTokenAttributeName:  conf.Oauth2.AccessTokenAttributeName,
-		RefreshTokenAttributeName: conf.Oauth2.RefreshTokenAttributeName,
-		EmailAttributeName:        conf.Oauth2.EmailAttributeName,
-		IdAttributeName:           conf.Oauth2.IdAttributeName,
-		NicknameAttributeName:     conf.Oauth2.NicknameAttributeName,
-		AvatarAttributeName:       conf.Oauth2.AvatarAttributeName,
-		PermissionsAttributeName:  conf.Oauth2.PermissionsAttributeName,
+func CreateOAuth2DoreamonHandler(cfg *CreateOAuth2DoreamonHandlerConfig) func(
+	w http.ResponseWriter,
+	r *http.Request,
+	CheckUser func(r *http.Request) error,
+	RemeberUser func(user *oauth2.User, token *oauth2.Token) error,
+	Next func() error,
+) error {
+	originPathCookieKey := "login_from"
+
+	client, err := doreamon.New(&doreamon.DoreamonConfig{
+		ClientID:     cfg.ClientID,
+		ClientSecret: cfg.ClientSecret,
+		RedirectURI:  cfg.RedirectURI,
+		Scope:        "using_doreamon",
+		Version:      "2",
 	})
 	if err != nil {
-		panic("oauth2 init error, invalid config")
+		panic(err)
 	}
 
-	return &Client{client}
+	return func(
+		w http.ResponseWriter,
+		r *http.Request,
+		RestoreUser func(r *http.Request) error,
+		SaveUser func(user *oauth2.User, token *oauth2.Token) error,
+		Next func() error,
+	) error {
+		if r.Method != "GET" {
+			return Next()
+		}
+		path := r.URL.Path
+
+		if path == "/login" {
+			client.Authorize("memos", func(loginUrl string) {
+				http.Redirect(w, r, loginUrl, http.StatusFound)
+			})
+			return nil
+		}
+
+		if path == "/logout" {
+			client.Logout(func(logoutUrl string) {
+				http.Redirect(w, r, logoutUrl, http.StatusFound)
+			})
+			return nil
+		}
+
+		if path == "/login/doreamon/callback" {
+			code := r.FormValue("code")
+			state := r.FormValue("state")
+
+			client.Callback(code, state, func(user *oauth2.User, token *oauth2.Token, err error) {
+				if err != nil {
+					log.Println("[OAUTH2] Login Callback Error", err)
+					time.Sleep(3 * time.Second)
+					http.Redirect(w, r, "/login", http.StatusFound)
+					return
+				}
+
+				if err := SaveUser(user, token); err != nil {
+					logger.Info("failed to save user: %#v", err)
+					time.Sleep(1)
+
+					w.WriteHeader(500)
+					w.Write([]byte("Failed to create user: " + user.Email))
+					return
+				}
+
+				http.Redirect(w, r, "/", http.StatusFound)
+			})
+
+			return nil
+		}
+
+		if matched, _ := regexp.MatchString("\\.(js|css|json)$", path); err == nil && matched {
+			return Next()
+		}
+
+		if err := RestoreUser(r); err != nil {
+			logger.Info("failed to restart user: %#v", err)
+			time.Sleep(1)
+			http.SetCookie(w, &http.Cookie{
+				Name:  "OriginPath",
+				Value: path,
+			})
+
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return nil
+		}
+
+		// success
+		if OriginPath, err := r.Cookie(originPathCookieKey); err == nil && OriginPath.Value != "" {
+			time.Sleep(1)
+
+			http.SetCookie(w, &http.Cookie{
+				Name:    originPathCookieKey,
+				Value:   "",
+				Expires: time.Unix(0, 0),
+			})
+
+			http.Redirect(w, r, OriginPath.Value, http.StatusFound)
+			return nil
+		}
+
+		return Next()
+	}
 }
 ```
 
 ```go
-// main logic
-// on login
-func login(w http.ResponseWriter, r *http.Request) {
-  client := oauth2.New()
-  client.Authorize(func(loginUrl string) {
-    http.Redirect(w, r, loginUrl, http.StatusFound)
-  })
-}
+// step 2: use as go http middleware
+//  here is memos/echo
+e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+	if os.Getenv("DOREAMON_CLIENT_ID") == "" {
+		panic("env DOREAMON_CLIENT_ID is required")
+	}
+	if os.Getenv("DOREAMON_CLIENT_SECRET") == "" {
+		panic("env DOREAMON_CLIENT_SECRET is required")
+	}
+	if os.Getenv("DOREAMON_REDIRECT_URI") == "" {
+		panic("env DOREAMON_REDIRECT_URI is required")
+	}
 
-// on login callback
-func loginCallback(w http.ResponseWriter, r *http.Request) {
-  code := r.FormValue("code")
-  state := r.FormValue("state")
+	handler := CreateOAuth2DoreamonHandler(&CreateOAuth2DoreamonHandlerConfig{
+		ClientID:     os.Getenv("DOREAMON_CLIENT_ID"),
+		ClientSecret: os.Getenv("DOREAMON_CLIENT_SECRET"),
+		RedirectURI:  os.Getenv("DOREAMON_REDIRECT_URI"),
+	})
 
-  client := oauth2.New()
-  client.Callback(code, state, func(user *oauth2.User, err error) {
-    if err != nil {
-      log.Println("[OAUTH2] Login Callback Error", err)
-      http.Redirect(w, r, "/login", http.StatusFound)
-      return
-    }
-
-		// Check Permission
-		if err := validatePermission(user, token); err != nil {
-			log.Println("[OAUTH2] Permission Denied", user.Email)
-			cb(nil, errors.New("permission denied"))
-			return
-		}
-
-		// Get Or Create User
-		dbUser, err := db.GetOrCreateUserByEmail(user.Email, user)
-
-		isAdmin := false
-		log.Println("[OAUTH2] Permissions", user.Permissions)
-		if user.Permissions != nil {
-			for _, p := range user.Permissions {
-				if strings.ToUpper(p) == "ADMIN" {
-					isAdmin = true
-					break
+	return func(c echo.Context) error {
+		return handler(
+			c.Response().Writer,
+			c.Request(),
+			func(r *http.Request) error {
+				userID, ok := getUserSession(c)
+				if !ok {
+					return fmt.Errorf("no user session found")
 				}
-			}
-		}
 
-		if isAdmin != dbUser.IsAdmin {
-			log.Println("[OAUTH2] Admin Change: ", dbUser.IsAdmin, " -> ", isAdmin)
-			dbUser.IsAdmin = isAdmin
-			if err := db.UpdateUser(dbUser); err != nil {
-				log.Println("[OAUTH2] Update User Error", user.Email)
-				cb(nil, errors.New("update user error"))
-				return
-			}
-		}
+				c.Set(getUserIDContextKey(), userID)
+				userFind := &api.UserFind{
+					ID: &userID,
+				}
+				_, err := s.Store.FindUser(c.Request().Context(), userFind)
+				if err != nil {
+					return err
+				}
 
-    // login success
-    session := sessions.Default(r)
-    session.Set("user_id", user.Id)
-    session.Save(r, w)
-
-    http.Redirect(w, r, "/", http.StatusFound)
-  })
-}
-
-// on logout
-func logout(w http.ResponseWriter, r *http.Request) {
-  client := oauth2.New()
-  client.Logout(func(logoutUrl string) {
-    http.Redirect(w, r, logoutUrl, http.StatusFound)
-  })
-}
-
-func validatePermission(user *oauth2.User, token *oauth2.Token) error {
-	if len(conf.Oauth2.AllowPermissions) == 0 {
-		return nil
-	}
-
-	oauth2_allow_permissions := strings.Split(conf.Oauth2.AllowPermissions, ",")
-
-	for _, p := range user.Permissions {
-		for _, ap := range oauth2_allow_permissions {
-			if p == ap {
 				return nil
-			}
-		}
-	}
+			},
+			func(user *oauth2.User, token *oauth2.Token) error {
+				ctx := c.Request().Context()
+				// Get Or Create User
+				userFind := &api.UserFind{
+					Username: &user.Email,
+				}
+				dbUser, err := s.Store.FindUser(ctx, userFind)
+				if err != nil || dbUser == nil {
+					role := api.Host
+					hostUserFind := api.UserFind{
+						Role: &role,
+					}
+					hostUser, err := s.Store.FindUser(ctx, &hostUserFind)
+					if err != nil {
+						return err
+					}
+					if hostUser != nil {
+						role = api.NormalUser
+					}
 
-	return errors.New("permission denied")
-}
+					userCreate := &api.UserCreate{
+						Username: user.Email,
+						Role:     api.Role(role),
+						Nickname: user.Nickname,
+						Password: random.String(32),
+						OpenID:   common.GenUUID(),
+					}
+					dbUser, err = s.Store.CreateUser(ctx, userCreate)
+					if err != nil {
+						return err
+					}
+				}
+
+				if err = setUserSession(c, dbUser); err != nil {
+					return err
+				}
+
+				return nil
+			},
+			func() error {
+				return next(c)
+			},
+		)
+	}
+})
+```
+
+### Example 2: Support multiple oauth2 providers: github, wechat, gitee, doreamon
+
+```go
+// @TODO connect
 ```
 
 ## License
