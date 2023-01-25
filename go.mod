@@ -3,6 +3,7 @@ module github.com/go-zoox/oauth2
 go 1.17
 
 require (
+	github.com/go-zoox/cookie v1.0.2
 	github.com/go-zoox/core-utils v1.1.0
 	github.com/go-zoox/fetch v1.7.3
 	github.com/go-zoox/logger v1.3.3
