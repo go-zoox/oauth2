@@ -155,7 +155,7 @@ func CreateOAuth2DoreamonHandler(cfg *CreateOAuth2DoreamonHandlerConfig) func(
 
 		tokeString := VerifyUserCfg.Token.Get()
 		if tokeString == "" {
-			logger.Info("failed to restore user: %#v", fmt.Errorf("[oauth2][VerifyUser] failed to get cookie by key(%s), value: empty string", CookieKey))
+			logger.Info("[oauth2] failed to verify user(1): %#v", fmt.Errorf("[oauth2][VerifyUser] failed to get cookie by key(%s), value: empty string", CookieKey))
 			time.Sleep(1 * time.Second)
 			http.SetCookie(w, &http.Cookie{
 				Name:  "OriginPath",
@@ -168,7 +168,7 @@ func CreateOAuth2DoreamonHandler(cfg *CreateOAuth2DoreamonHandlerConfig) func(
 
 		logger.Infof("[oauth2] verify user ...")
 		if err := VerifyUser(VerifyUserCfg, tokeString, r); err != nil {
-			logger.Info("failed to restore user: %#v", err)
+			logger.Info("[oauth2] failed to verify user(2): %#v", err)
 			time.Sleep(1 * time.Second)
 			http.SetCookie(w, &http.Cookie{
 				Name:  "OriginPath",
