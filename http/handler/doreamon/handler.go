@@ -1,11 +1,13 @@
 package doreamon
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/go-zoox/cookie"
@@ -81,6 +83,30 @@ func CreateOAuth2DoreamonHandler(cfg *CreateOAuth2DoreamonHandlerConfig) func(
 		Next func() error,
 	) error {
 		if r.Method != "GET" {
+			tokeString := VerifyUserCfg.Token.Get()
+			if tokeString == "" {
+				logger.Info("[oauth2] failed to verify user(1): %#v", fmt.Errorf("[oauth2][VerifyUser] failed to get cookie by key(%s), value: empty string", CookieKey))
+				time.Sleep(1 * time.Second)
+
+				// http.Redirect(w, r, "/login", http.StatusFound)
+
+				w.WriteHeader(401)
+
+				accept := r.Header.Get("Accept")
+				acceptJSON := accept == "*/*" || strings.Contains(accept, "application/json")
+				if acceptJSON {
+					data, _ := json.Marshal(map[string]any{
+						"code":    401000,
+						"message": "Unauthorized",
+					})
+					w.Write(data)
+					return nil
+				}
+
+				w.Write([]byte("Unauthorized"))
+				return nil
+			}
+
 			return Next()
 		}
 
