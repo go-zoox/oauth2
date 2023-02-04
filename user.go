@@ -22,15 +22,12 @@ type User struct {
 func GetUser(config *Config, token *Token, code string) (*User, error) {
 	user := &User{}
 
-	// oauth2ProviderUserinfoURL := "https://httpbin.zcorky.com/get"
-	oauth2ProviderUserinfoURL := config.UserInfoURL
-
 	var response *fetch.Response
 	var err error
 	if config.GetUserResponse != nil {
 		response, err = config.GetUserResponse(config, token, code)
 	} else {
-		response, err = fetch.Get(oauth2ProviderUserinfoURL, &fetch.Config{
+		response, err = fetch.Get(config.UserInfoURL, &fetch.Config{
 			Headers: map[string]string{
 				"Authorization": "Bearer " + token.AccessToken,
 			},
