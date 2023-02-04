@@ -13,6 +13,8 @@ type Token struct {
 	RefreshToken string `json:"refresh_token"`
 	ExpiresIn    int64  `json:"expires_in"`
 	TokenType    string `json:"token_type"`
+	//
+	Raw *fetch.Response `json:"response"`
 }
 
 // GetToken gets the token by code and state.
@@ -73,6 +75,8 @@ func GetToken(config *Config, code string, state string) (*Token, error) {
 	token.RefreshToken = refreshToken
 	token.ExpiresIn = expiresIn
 	token.TokenType = tokenType
+
+	token.Raw = response
 
 	return token, nil
 }

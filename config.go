@@ -59,7 +59,7 @@ type Config struct {
 	GroupsAttributeName string
 
 	// url: login(authorize) + logout
-	GeLoginURL   func(cfg *Config, state string) string
+	GetLoginURL  func(cfg *Config, state string) string
 	GetLogoutURL func(cfg *Config) string
 
 	// token
@@ -76,8 +76,8 @@ func (oac *Config) generateLoginURL(state string) string {
 		state = "anything"
 	}
 
-	if oac.GeLoginURL != nil {
-		return oac.GeLoginURL(oac, state)
+	if oac.GetLoginURL != nil {
+		return oac.GetLoginURL(oac, state)
 	}
 
 	clientID := oac.ClientID

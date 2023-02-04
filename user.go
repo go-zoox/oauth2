@@ -16,6 +16,8 @@ type User struct {
 	Nickname    string   `json:"nickname"`
 	Groups      []string `json:"groups"`
 	Permissions []string `json:"permissions"`
+
+	Raw *fetch.Response `json:"response"`
 }
 
 // GetUser gets the user by token.
@@ -62,6 +64,8 @@ func GetUser(config *Config, token *Token, code string) (*User, error) {
 		user.Groups = append(user.Groups, value.String())
 		return true
 	})
+
+	user.Raw = response
 
 	return user, nil
 }
