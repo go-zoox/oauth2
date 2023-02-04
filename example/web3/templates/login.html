@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Login Web3</title>
+</head>
+
+<body>
+  <a onclick="onLogin">Login with Web3</a>
+  <script>
+    async function onLogin() {
+      const publicAddress = web3.eth.coinbase.toLowerCase();
+
+      // Check if user with current publicAddress is already present on back end
+      const { isSignUped, nonce } = await fetch(`/login?action=chanllenge&publicAddress=${publicAddress}`).then(res => res.json());
+      if (isSignUped) {
+        // Sign Message
+        const signature = await new Promise((resolve, reject) => {
+          web3.personal.sign(web3.fromUtf8(nonce), publicAddress, (err, signature) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(signature);
+            }
+          });
+        });
+
+        // Send signature to backend => authenticate
+        await fetch("/login?action=authenticate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            publicAddress,
+            signature
+          })
+        });
+
+        return;
+      };
+
+      // Sign Up
+      await fetch(`/login?action=signup`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          publicAddress,
+        })
+      }).then(res => res.json());
+    }
+  </script>
+</body>
+
+</html>

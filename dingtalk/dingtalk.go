@@ -68,7 +68,7 @@ func New(cfg *DingTalkConfig) (oauth2.Client, error) {
 			Headers: map[string]string{
 				"Accept": "application/json",
 			},
-			Query: fetch.ConfigQuery{
+			Query: fetch.Query{
 				"appid":      cfg.ClientID,
 				"secret":     cfg.ClientSecret,
 				"code":       code,

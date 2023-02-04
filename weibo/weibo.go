@@ -60,7 +60,7 @@ func New(cfg *WeiboConfig) (oauth2.Client, error) {
 			// Headers: map[string]string{
 			// 	"Authorization": "Bearer " + token.AccessToken,
 			// },
-			Query: fetch.ConfigQuery{
+			Query: fetch.Query{
 				"access_token": token.AccessToken,
 			},
 		})
@@ -77,7 +77,7 @@ func New(cfg *WeiboConfig) (oauth2.Client, error) {
 			// Headers: map[string]string{
 			// 	"Authorization": "Bearer " + token.AccessToken,
 			// },
-			Query: fetch.ConfigQuery{
+			Query: fetch.Query{
 				"access_token": token.AccessToken,
 				"uid":          uid,
 			},

@@ -48,7 +48,7 @@ func New(cfg *XiaoMiConfig) (oauth2.Client, error) {
 
 	config.GetUserResponse = func(config *oauth2.Config, token *oauth2.Token, code string) (*fetch.Response, error) {
 		return fetch.Get(config.UserInfoURL, &fetch.Config{
-			Query: fetch.ConfigQuery{
+			Query: fetch.Query{
 				"clientId": cfg.ClientID,
 				"token":    token.AccessToken,
 			},
