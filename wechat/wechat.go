@@ -26,9 +26,9 @@ func New(cfg *WechatConfig) (oauth2.Client, error) {
 	config := oauth2.Config{
 		Name:            "Wechat",
 		AuthURL:         "https://open.weixin.qq.com/connect/qrconnect",
-		TokenURL:        "https://api.weixin.qq.com/sns/oauth2/access_token", // return uid
+		TokenURL:        "https://api.weixin.qq.com/sns/oauth2/access_token",
 		RefershTokenURL: "https://api.weixin.qq.com/sns/oauth2/refresh_token",
-		UserInfoURL:     "https://api.weixin.qq.com/sns/userinfo", // need uid
+		UserInfoURL:     "https://api.weixin.qq.com/sns/userinfo",
 		LogoutURL:       "",
 		Scope:           scope,
 		RedirectURI:     cfg.RedirectURI,

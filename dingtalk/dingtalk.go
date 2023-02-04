@@ -31,8 +31,8 @@ func New(cfg *DingTalkConfig) (oauth2.Client, error) {
 	config := oauth2.Config{
 		Name:         "DingTalk",
 		AuthURL:      "https://login.dingtalk.com/oauth2/auth",
-		TokenURL:     "https://api.dingtalk.com/v1.0/oauth2/userAccessToken", // return uid
-		UserInfoURL:  "https://api.dingtalk.com/v1.0/contact/users/me",       // need uid
+		TokenURL:     "https://api.dingtalk.com/v1.0/oauth2/userAccessToken",
+		UserInfoURL:  "https://api.dingtalk.com/v1.0/contact/users/me",
 		LogoutURL:    "",
 		Scope:        scope,
 		RedirectURI:  cfg.RedirectURI,
