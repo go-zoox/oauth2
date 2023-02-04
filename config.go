@@ -55,9 +55,14 @@ type Config struct {
 	// User.groups, default: groups
 	GroupsAttributeName string
 
-	//
+	// url: login(authorize) + logout
+	GenerateLoginURL  func(cfg *Config, state string) string
+	GenerateLogoutURL func(cfg *Config) string
+
+	// token
 	GetAccessTokenResponse func(cfg *Config, code string, state string) (*fetch.Response, error)
-	GetUserResponse        func(cfg *Config, token *Token, code string) (*fetch.Response, error)
+	// user
+	GetUserResponse func(cfg *Config, token *Token, code string) (*fetch.Response, error)
 }
 
 // GetLoginURL gets the authorize url.
@@ -66,6 +71,10 @@ type Config struct {
 func (oac *Config) GetLoginURL(state string) string {
 	if state == "" {
 		state = "anything"
+	}
+
+	if oac.GenerateLoginURL != nil {
+		return oac.GenerateLoginURL(oac, state)
 	}
 
 	clientID := oac.ClientID
@@ -91,6 +100,10 @@ func (oac *Config) GetLoginURL(state string) string {
 //
 // Example: https://login.example.com/logout?client_id=CLIENT_ID&redirect_uri=https%3A%2F%2Fabc.com%2Flogin/callback
 func (oac *Config) GetLogoutURL() string {
+	if oac.GenerateLogoutURL != nil {
+		return oac.GenerateLogoutURL(oac)
+	}
+
 	clientID := oac.ClientID
 	redirectURI := oac.RedirectURI // oac.ServerUrl + "/login/callback"
 

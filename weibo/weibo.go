@@ -1,9 +1,11 @@
-package github
+package weibo
 
 // reference: https://open.weibo.com/wiki/%E5%BE%AE%E5%8D%9AAPI#OAuth2
 
 import (
 	"fmt"
+	"net/url"
+	"strings"
 
 	"github.com/go-zoox/fetch"
 	"github.com/go-zoox/oauth2"
@@ -28,7 +30,7 @@ func New(cfg *WeiboConfig) (oauth2.Client, error) {
 		AuthURL:      "https://api.weibo.com/oauth2/authorize",
 		TokenURL:     "https://api.weibo.com/oauth2/access_token", // return uid
 		UserInfoURL:  "https://api.weibo.com/2/users/show.json",   // need uid
-		LogoutURL:    "https://github.com/logout",
+		LogoutURL:    "https://open.weibo.com/logout.php",
 		Scope:        scope,
 		RedirectURI:  cfg.RedirectURI,
 		ClientID:     cfg.ClientID,
@@ -44,6 +46,13 @@ func New(cfg *WeiboConfig) (oauth2.Client, error) {
 		NicknameAttributeName: "name",
 		AvatarAttributeName:   "profile_image_url",
 		HomepageAttributeName: "url",
+	}
+
+	config.GenerateLogoutURL = func(cfg *oauth2.Config) string {
+		return strings.Join([]string{
+			cfg.LogoutURL,
+			fmt.Sprintf("?%s=", "backurl"), url.QueryEscape(cfg.RedirectURI),
+		}, "")
 	}
 
 	config.GetUserResponse = func(config *oauth2.Config, token *oauth2.Token, code string) (*fetch.Response, error) {
