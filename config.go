@@ -15,7 +15,10 @@ type Config struct {
 	AuthURL     string
 	TokenURL    string
 	UserInfoURL string
-	LogoutURL   string
+	//
+	RefershTokenURL string
+	//
+	LogoutURL string
 	// callback url = server url + callback path, example: https://example.com/login/callback
 	RedirectURI string
 	Scope       string
@@ -56,8 +59,8 @@ type Config struct {
 	GroupsAttributeName string
 
 	// url: login(authorize) + logout
-	GenerateLoginURL  func(cfg *Config, state string) string
-	GenerateLogoutURL func(cfg *Config) string
+	GeLoginURL   func(cfg *Config, state string) string
+	GetLogoutURL func(cfg *Config) string
 
 	// token
 	GetAccessTokenResponse func(cfg *Config, code string, state string) (*fetch.Response, error)
@@ -65,16 +68,16 @@ type Config struct {
 	GetUserResponse func(cfg *Config, token *Token, code string) (*fetch.Response, error)
 }
 
-// GetLoginURL gets the authorize url.
+// generateLoginURL gets the authorize url.
 //
 // Example: https://login.example.com/authorize?client_id=CLIENT_ID&redirect_uri=https%3A%2F%2Fabc.com%2Flogin%2Fcallback&response_type=code&scope=openid&state=anything
-func (oac *Config) GetLoginURL(state string) string {
+func (oac *Config) generateLoginURL(state string) string {
 	if state == "" {
 		state = "anything"
 	}
 
-	if oac.GenerateLoginURL != nil {
-		return oac.GenerateLoginURL(oac, state)
+	if oac.GeLoginURL != nil {
+		return oac.GeLoginURL(oac, state)
 	}
 
 	clientID := oac.ClientID
@@ -96,12 +99,12 @@ func (oac *Config) GetLoginURL(state string) string {
 	}, "")
 }
 
-// GetLogoutURL gets the logout url.
+// generateLogoutURL gets the logout url.
 //
 // Example: https://login.example.com/logout?client_id=CLIENT_ID&redirect_uri=https%3A%2F%2Fabc.com%2Flogin/callback
-func (oac *Config) GetLogoutURL() string {
-	if oac.GenerateLogoutURL != nil {
-		return oac.GenerateLogoutURL(oac)
+func (oac *Config) generateLogoutURL() string {
+	if oac.GetLogoutURL != nil {
+		return oac.GetLogoutURL(oac)
 	}
 
 	clientID := oac.ClientID

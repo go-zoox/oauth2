@@ -35,7 +35,7 @@ func New(config Config, options ...interface{}) (Client, error) {
 // Authorize is the first step of login
 // means redirect to oauth server authorize page
 func (oa *client) Authorize(state string, callback func(loginUrl string)) {
-	callback(oa.GetLoginURL(state))
+	callback(oa.generateLoginURL(state))
 }
 
 // Callback is the second step of login,
@@ -65,5 +65,5 @@ func (oa *client) Callback(code, state string, cb func(user *User, token *Token,
 
 // Logout just to logout the user
 func (oa *client) Logout(callback func(logoutUrl string)) {
-	callback(oa.GetLogoutURL())
+	callback(oa.generateLogoutURL())
 }

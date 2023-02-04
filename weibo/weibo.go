@@ -22,7 +22,7 @@ type WeiboConfig struct {
 func New(cfg *WeiboConfig) (oauth2.Client, error) {
 	scope := cfg.Scope
 	if scope == "" {
-		scope = "user:email"
+		scope = "email"
 	}
 
 	config := oauth2.Config{
@@ -48,7 +48,7 @@ func New(cfg *WeiboConfig) (oauth2.Client, error) {
 		HomepageAttributeName: "url",
 	}
 
-	config.GenerateLogoutURL = func(cfg *oauth2.Config) string {
+	config.GetLogoutURL = func(cfg *oauth2.Config) string {
 		return strings.Join([]string{
 			cfg.LogoutURL,
 			fmt.Sprintf("?%s=", "backurl"), url.QueryEscape(cfg.RedirectURI),
