@@ -69,7 +69,7 @@ func New(cfg *WechatConfig) (oauth2.Client, error) {
 			// },
 			Query: fetch.Query{
 				"access_token": token.AccessToken,
-				"openid":       token.Raw.Get("openid").String(),
+				"openid":       token.Raw().Get("openid").String(),
 			},
 		})
 	}

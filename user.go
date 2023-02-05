@@ -17,7 +17,11 @@ type User struct {
 	Groups      []string `json:"groups"`
 	Permissions []string `json:"permissions"`
 
-	Raw *fetch.Response `json:"response"`
+	raw *fetch.Response
+}
+
+func (u *User) Raw() *fetch.Response {
+	return u.raw
 }
 
 // GetUser gets the user by token.
@@ -65,7 +69,7 @@ func GetUser(config *Config, token *Token, code string) (*User, error) {
 		return true
 	})
 
-	user.Raw = response
+	user.raw = response
 
 	return user, nil
 }

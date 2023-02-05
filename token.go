@@ -14,7 +14,11 @@ type Token struct {
 	ExpiresIn    int64  `json:"expires_in"`
 	TokenType    string `json:"token_type"`
 	//
-	Raw *fetch.Response `json:"response"`
+	raw *fetch.Response
+}
+
+func (u *Token) Raw() *fetch.Response {
+	return u.raw
 }
 
 // GetToken gets the token by code and state.
@@ -76,7 +80,7 @@ func GetToken(config *Config, code string, state string) (*Token, error) {
 	token.ExpiresIn = expiresIn
 	token.TokenType = tokenType
 
-	token.Raw = response
+	token.raw = response
 
 	return token, nil
 }
