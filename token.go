@@ -17,6 +17,7 @@ type Token struct {
 	raw *fetch.Response
 }
 
+// Raw gets raw data with *fetch.Response.
 func (u *Token) Raw() *fetch.Response {
 	return u.raw
 }

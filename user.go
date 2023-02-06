@@ -20,6 +20,7 @@ type User struct {
 	raw *fetch.Response
 }
 
+// Raw gets raw data with *fetch.Response.
 func (u *User) Raw() *fetch.Response {
 	return u.raw
 }
