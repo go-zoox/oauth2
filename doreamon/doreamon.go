@@ -32,6 +32,7 @@ func New(cfg *DoreamonConfig) (oauth2.Client, error) {
 		TokenURL:     "https://login.zcorky.com/token",
 		UserInfoURL:  "https://login.zcorky.com/user",
 		LogoutURL:    logoutURL,
+		RegisterURL:  "https://login.zcorky.com/register",
 		Scope:        scope,
 		RedirectURI:  cfg.RedirectURI,
 		ClientID:     cfg.ClientID,

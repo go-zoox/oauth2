@@ -9,6 +9,7 @@ type Client interface {
 	Authorize(state string, callback func(loginUrl string))
 	Callback(code, state string, cb func(user *User, token *Token, err error))
 	Logout(callback func(logoutUrl string))
+	Register(callback func(registerUrl string))
 }
 
 // client is the OAuth2 client.
@@ -66,4 +67,9 @@ func (oa *client) Callback(code, state string, cb func(user *User, token *Token,
 // Logout just to logout the user
 func (oa *client) Logout(callback func(logoutUrl string)) {
 	callback(oa.generateLogoutURL())
+}
+
+// Register just to register
+func (oa *client) Register(callback func(logoutUrl string)) {
+	callback(oa.generateRegisterURL())
 }
