@@ -19,6 +19,8 @@ type Config struct {
 	RefershTokenURL string
 	//
 	LogoutURL string
+	//
+	RegisterURL string
 	// callback url = server url + callback path, example: https://example.com/login/callback
 	RedirectURI string
 	Scope       string
@@ -59,8 +61,9 @@ type Config struct {
 	GroupsAttributeName string
 
 	// url: login(authorize) + logout
-	GetLoginURL  func(cfg *Config, state string) string
-	GetLogoutURL func(cfg *Config) string
+	GetLoginURL    func(cfg *Config, state string) string
+	GetLogoutURL   func(cfg *Config) string
+	GetRegisterURL func(cfg *Config) string
 
 	// token
 	GetAccessTokenResponse func(cfg *Config, code string, state string) (*fetch.Response, error)
@@ -114,6 +117,26 @@ func (oac *Config) generateLogoutURL() string {
 		oac.LogoutURL,
 		fmt.Sprintf("?%s=", oac.ClientIDAttributeName), clientID,
 		fmt.Sprintf("&%s=", oac.RedirectURIAttributeName), url.QueryEscape(redirectURI),
+	}, "")
+}
+
+// generateRegisterURL gets the register url.
+//
+// Exmaple: https://login.example.com/register?client_id=CLIENT_ID&invitation_code=xxxx
+func (oac *Config) generateRegisterURL() string {
+	if oac.GetRegisterURL != nil {
+		return oac.GetRegisterURL(oac)
+	}
+
+	// @TODO
+	if oac.RegisterURL == "" {
+		message := url.QueryEscape(fmt.Sprintf("oauth2 %s does not support register", oac.Name))
+		return fmt.Sprintf("/error?code=%d&message=%s", 500, message)
+	}
+
+	return strings.Join([]string{
+		oac.RegisterURL,
+		fmt.Sprintf("?%s=", oac.ClientIDAttributeName), oac.ClientID,
 	}, "")
 }
 

@@ -1,6 +1,9 @@
 package github
 
 import (
+	"fmt"
+	"net/url"
+
 	"github.com/go-zoox/oauth2"
 )
 
@@ -39,6 +42,11 @@ func New(cfg *GitHubConfig) (oauth2.Client, error) {
 		NicknameAttributeName: "name",
 		AvatarAttributeName:   "avatar_url",
 		HomepageAttributeName: "html_url",
+	}
+
+	config.GetRegisterURL = func(oac *oauth2.Config) string {
+		returnTo := fmt.Sprintf("https://github.com/login?client_id=%s", cfg.ClientID)
+		return fmt.Sprintf("https://github.com/signup?return_to=%s", url.QueryEscape(returnTo))
 	}
 
 	return oauth2.New(config)

@@ -2,6 +2,8 @@ package feishu
 
 import (
 	"fmt"
+	"net/url"
+	"strings"
 
 	"github.com/go-zoox/fetch"
 	"github.com/go-zoox/oauth2"
@@ -73,6 +75,19 @@ func New(cfg *FeishuConfig) (oauth2.Client, error) {
 				"code":       code,
 			},
 		})
+	}
+
+	config.GetRegisterURL = func(oac *oauth2.Config) string {
+		loginURL := strings.Join([]string{
+			oac.AuthURL,
+			fmt.Sprintf("?%s=", oac.ClientIDAttributeName), oac.ClientID,
+			fmt.Sprintf("&%s=", oac.RedirectURIAttributeName), url.QueryEscape(oac.RedirectURI),
+			fmt.Sprintf("&%s=", oac.ResponseTypeAttributeName), "code",
+			fmt.Sprintf("&%s=", oac.ScopeAttributeName), url.QueryEscape(oac.Scope),
+			fmt.Sprintf("&%s=", oac.StateAttributeName), url.QueryEscape("anything"),
+		}, "")
+
+		return fmt.Sprintf("https://www.feishu.cn/accounts/page/ug_register?redirect_uri=%s", url.QueryEscape(loginURL))
 	}
 
 	return oauth2.New(config)
