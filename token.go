@@ -60,7 +60,7 @@ func GetToken(config *Config, code string, state string) (*Token, error) {
 		return nil, errors.New("get access token error by code (3): " + err.Error())
 	}
 
-	logger.Info("[oauth2][getToken]: %s", response.String())
+	logger.Debugf("[oauth2][token]: %s", response.String())
 
 	errorCode := response.Get("code").Int()
 	errorMessage := response.Get("message").String()

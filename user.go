@@ -44,7 +44,7 @@ func GetUser(config *Config, token *Token, code string) (*User, error) {
 		return nil, errors.New("get user info error: " + err.Error())
 	}
 
-	logger.Info("[oauth2][getUser]: %s", response.String())
+	logger.Debugf("[oauth2][user]: %s", response.String())
 
 	errorCode := response.Get("code").Int()
 	errorMessage := response.Get("message").String()
