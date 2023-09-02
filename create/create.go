@@ -7,6 +7,7 @@ import (
 	"github.com/go-zoox/oauth2/doreamon"
 	"github.com/go-zoox/oauth2/feishu"
 	"github.com/go-zoox/oauth2/github"
+	"github.com/go-zoox/oauth2/slack"
 )
 
 func Create(provider string, cfg *oauth2.Config) (oauth2.Client, error) {
@@ -28,6 +29,13 @@ func Create(provider string, cfg *oauth2.Config) (oauth2.Client, error) {
 		})
 	case "feishu":
 		return feishu.New(&feishu.FeishuConfig{
+			ClientID:     cfg.ClientID,
+			ClientSecret: cfg.ClientSecret,
+			RedirectURI:  cfg.RedirectURI,
+			Scope:        cfg.Scope,
+		})
+	case "slack":
+		return slack.New(&slack.SlackConfig{
 			ClientID:     cfg.ClientID,
 			ClientSecret: cfg.ClientSecret,
 			RedirectURI:  cfg.RedirectURI,
