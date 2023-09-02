@@ -8,6 +8,7 @@ import (
 	"github.com/go-zoox/oauth2/feishu"
 	"github.com/go-zoox/oauth2/github"
 	"github.com/go-zoox/oauth2/gitlab"
+	"github.com/go-zoox/oauth2/google"
 	"github.com/go-zoox/oauth2/kakao"
 	"github.com/go-zoox/oauth2/slack"
 )
@@ -52,6 +53,13 @@ func Create(provider string, cfg *oauth2.Config) (oauth2.Client, error) {
 		})
 	case "kakao":
 		return kakao.New(&kakao.KakaoConfig{
+			ClientID:     cfg.ClientID,
+			ClientSecret: cfg.ClientSecret,
+			RedirectURI:  cfg.RedirectURI,
+			Scope:        cfg.Scope,
+		})
+	case "google":
+		return google.New(&google.GoogleConfig{
 			ClientID:     cfg.ClientID,
 			ClientSecret: cfg.ClientSecret,
 			RedirectURI:  cfg.RedirectURI,
