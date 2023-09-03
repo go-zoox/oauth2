@@ -116,6 +116,10 @@ func (oac *Config) generateLogoutURL() string {
 	clientID := oac.ClientID
 	redirectURI := oac.RedirectURI // oac.ServerUrl + "/login/callback"
 
+	if oac.LogoutURL == "" {
+		return ""
+	}
+
 	return strings.Join([]string{
 		oac.LogoutURL,
 		fmt.Sprintf("?%s=", oac.ClientIDAttributeName), clientID,
