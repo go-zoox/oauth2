@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/go-zoox/oauth2"
+	"github.com/go-zoox/oauth2/auth0"
 	"github.com/go-zoox/oauth2/doreamon"
 	"github.com/go-zoox/oauth2/feishu"
 	"github.com/go-zoox/oauth2/github"
@@ -64,6 +65,15 @@ func Create(provider string, cfg *oauth2.Config) (oauth2.Client, error) {
 			ClientSecret: cfg.ClientSecret,
 			RedirectURI:  cfg.RedirectURI,
 			Scope:        cfg.Scope,
+		})
+	//
+	case "auth0":
+		return auth0.New(&auth0.Auth0Config{
+			ClientID:     cfg.ClientID,
+			ClientSecret: cfg.ClientSecret,
+			RedirectURI:  cfg.RedirectURI,
+			Scope:        cfg.Scope,
+			BaseURL:      cfg.BaseURL,
 		})
 	default:
 		return nil, fmt.Errorf("oauth2: provider(%s) not supported", provider)
