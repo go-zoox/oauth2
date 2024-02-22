@@ -10,6 +10,8 @@ type Client interface {
 	Callback(code, state string, cb func(user *User, token *Token, err error))
 	Logout(callback func(logoutUrl string))
 	Register(callback func(registerUrl string))
+	//
+	RefreshToken(refreshToken string) (*Token, error)
 }
 
 // client is the OAuth2 client.
@@ -72,4 +74,9 @@ func (oa *client) Logout(callback func(logoutUrl string)) {
 // Register just to register
 func (oa *client) Register(callback func(logoutUrl string)) {
 	callback(oa.generateRegisterURL())
+}
+
+// RefreshToken refresh the token by refresh token.
+func (oa *client) RefreshToken(refreshToken string) (*Token, error) {
+	return RefreshToken(&oa.Config, refreshToken)
 }
