@@ -69,6 +69,8 @@ type Config struct {
 	GetAccessTokenResponse func(cfg *Config, code string, state string) (*fetch.Response, error)
 	// user
 	GetUserResponse func(cfg *Config, token *Token, code string) (*fetch.Response, error)
+	//
+	RefreshToken func(cfg *Config, refreshToken string) (*fetch.Response, error)
 
 	// base url for identity providers, such as auth0, authing
 	BaseURL string
