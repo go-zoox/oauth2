@@ -45,6 +45,8 @@ type Config struct {
 	// Token.id_token, default: id_token
 	TokenTypeAttributeName string
 
+	// User.username, default: username
+	UsernameAttributeName string
 	// User.email, default: email
 	EmailAttributeName string
 	// User.id, default: id
@@ -189,6 +191,10 @@ func ApplyDefaultConfig(config *Config) (err error) {
 
 	if config.TokenTypeAttributeName == "" {
 		config.TokenTypeAttributeName = "token_type"
+	}
+
+	if config.UsernameAttributeName == "" {
+		config.UsernameAttributeName = "username"
 	}
 
 	if config.EmailAttributeName == "" {
