@@ -11,6 +11,7 @@ import (
 // User is the oauth2 user.
 type User struct {
 	ID          string   `json:"id"`
+	Username    string   `json:"username"`
 	Email       string   `json:"email"`
 	Avatar      string   `json:"avatar"`
 	Nickname    string   `json:"nickname"`
@@ -53,10 +54,18 @@ func GetUser(config *Config, token *Token, code string) (*User, error) {
 	}
 
 	user.ID = response.Get(config.IDAttributeName).String()
+	user.Username = response.Get(config.UsernameAttributeName).String()
 	user.Email = response.Get(config.EmailAttributeName).String()
 	user.Nickname = response.Get(config.NicknameAttributeName).String()
 	user.Avatar = response.Get(config.AvatarAttributeName).String()
 	user.Permissions = make([]string, 0)
+
+	if user.Username == "" {
+		user.Username = user.Email
+	}
+	if user.Username == "" {
+		user.Username = user.ID
+	}
 
 	permissionsResult := response.Get(config.PermissionsAttributeName)
 	permissionsResult.ForEach(func(key, value gjson.Result) bool {
