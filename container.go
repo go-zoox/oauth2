@@ -6,7 +6,7 @@ import (
 	"github.com/go-zoox/core-utils/safe"
 )
 
-var clients = safe.NewMap()
+var clients = safe.NewMap[string, any]()
 
 // Register registers a new oauth2 service provider.
 func Register(provider string, cfg *Config) error {

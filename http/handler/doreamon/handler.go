@@ -43,7 +43,9 @@ func (t *Token) Get() string {
 }
 
 func (t *Token) Set(token string) error {
-	t.Cookie().Set(t.CookieKey, token, 7*24*time.Hour)
+	t.Cookie().Set(t.CookieKey, token, &cookie.Config{
+		MaxAge: 7 * 24 * time.Hour,
+	})
 	return nil
 }
 

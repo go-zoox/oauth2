@@ -4,8 +4,8 @@ go 1.19
 
 require (
 	github.com/go-zoox/cookie v1.2.0
-	github.com/go-zoox/core-utils v1.3.6
-	github.com/go-zoox/fetch v1.8.1
+	github.com/go-zoox/core-utils v1.4.11
+	github.com/go-zoox/fetch v1.8.2
 	github.com/go-zoox/logger v1.4.6
 	github.com/tidwall/gjson v1.17.1
 )
