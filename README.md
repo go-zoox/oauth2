@@ -17,6 +17,7 @@ go get github.com/go-zoox/oauth2
 
 This library supports many OAuth2 providers, including:
 
+- **WebAuthn** - 🔐 Passwordless authentication with biometrics and security keys
 - **Supabase** - Full-featured authentication platform
 - **GitHub** - Version control and collaboration
 - **Google** - Google services authentication
@@ -49,6 +50,35 @@ client, err := supabase.New(&supabase.SupabaseConfig{
 ```
 
 For detailed Supabase setup instructions, see the [Supabase provider documentation](supabase/README.md).
+
+### WebAuthn Provider
+
+The WebAuthn provider enables passwordless authentication using biometrics, security keys, and platform authenticators:
+
+```go
+import "github.com/go-zoox/oauth2/webauthn"
+
+// Create user and session stores
+userStore := webauthn.NewSimpleUserStore()
+sessionStore := webauthn.NewSimpleSessionStore()
+
+// Create WebAuthn client
+client, err := webauthn.New(&webauthn.WebAuthnConfig{
+    RPDisplayName: "Your App Name",
+    RPID:          "yourdomain.com",
+    RPOrigins:     []string{"https://yourdomain.com"},
+    UserStore:     userStore,
+    SessionStore:  sessionStore,
+})
+```
+
+WebAuthn supports:
+- 🔐 **Passwordless login** with fingerprint, face recognition, PIN
+- 🔑 **Hardware security keys** (YubiKey, SoloKey, etc.)
+- 📱 **Platform authenticators** (Windows Hello, Touch ID, etc.)
+- 🛡️ **Enhanced security** with phishing resistance
+
+For detailed WebAuthn setup instructions, see the [WebAuthn provider documentation](webauthn/README.md).
 
 ## Getting Started
 
