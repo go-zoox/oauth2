@@ -1,0 +1,92 @@
+# acme-go configuration example
+# Save this file as ~/.acme-go.yaml
+
+# Account settings
+email: your@email.com
+server: https://acme-v02.api.letsencrypt.org/directory
+staging: false
+
+# Storage settings
+cert_dir: /home/user/.acme-go
+
+# Default settings
+key_type: ec-256
+renew_days: 30
+
+# DNS provider configurations
+dns_providers:
+  # Cloudflare
+  dns_cf:
+    CF_API_KEY: your_cloudflare_global_api_key
+    CF_EMAIL: your_cloudflare_email
+    # OR use API Token (recommended)
+    # CF_TOKEN: your_cloudflare_api_token
+    # CF_ZONE_ID: your_zone_id (optional)
+
+  # Alibaba Cloud
+  dns_ali:
+    ALICLOUD_ACCESS_KEY: your_access_key
+    ALICLOUD_SECRET_KEY: your_secret_key
+    ALICLOUD_REGION_ID: cn-hangzhou
+
+  # Amazon Route53
+  dns_aws:
+    AWS_ACCESS_KEY_ID: your_access_key
+    AWS_SECRET_ACCESS_KEY: your_secret_key
+    AWS_REGION: us-east-1
+
+  # Google Cloud DNS
+  dns_gcloud:
+    GCE_PROJECT: your_project_id
+    GCE_SERVICE_ACCOUNT_FILE: /path/to/service-account.json
+
+  # DigitalOcean
+  dns_do:
+    DO_AUTH_TOKEN: your_digitalocean_token
+
+# Deployment hooks
+deploy_hooks:
+  # Nginx deployment
+  nginx:
+    type: script
+    script: /usr/local/bin/deploy-nginx.sh
+    settings:
+      nginx_config_dir: /etc/nginx/sites-available
+      nginx_ssl_dir: /etc/nginx/ssl
+
+  # Apache deployment
+  apache:
+    type: script
+    script: /usr/local/bin/deploy-apache.sh
+    settings:
+      apache_config_dir: /etc/apache2/sites-available
+      apache_ssl_dir: /etc/apache2/ssl
+
+  # Docker deployment
+  docker:
+    type: script
+    script: /usr/local/bin/deploy-docker.sh
+    settings:
+      container_name: web-server
+      restart_command: docker restart web-server
+
+  # Kubernetes deployment
+  k8s:
+    type: script
+    script: /usr/local/bin/deploy-k8s.sh
+    settings:
+      namespace: default
+      secret_name: tls-secret
+
+# Notification settings
+notifications:
+  enabled: true
+  type: email
+  settings:
+    smtp_server: smtp.gmail.com
+    smtp_port: "587"
+    smtp_tls: "true"
+    username: your@email.com
+    password: your_app_password
+    from: acme-go@yourdomain.com
+    to: admin@yourdomain.com

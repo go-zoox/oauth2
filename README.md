@@ -1,243 +1,311 @@
-# OAuth2 - Open Auth 2.0 Client
+# acme-go
 
-[![PkgGoDev](https://pkg.go.dev/badge/github.com/go-zoox/oauth2)](https://pkg.go.dev/github.com/go-zoox/oauth2)
-[![Build Status](https://github.com/go-zoox/oauth2/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/go-zoox/oauth2/actions/workflows/ci.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/go-zoox/oauth2)](https://goreportcard.com/report/github.com/go-zoox/oauth2)
-[![Coverage Status](https://coveralls.io/repos/github/go-zoox/oauth2/badge.svg?branch=master)](https://coveralls.io/github/go-zoox/oauth2?branch=master)
-[![GitHub issues](https://img.shields.io/github/issues/go-zoox/oauth2.svg)](https://github.com/go-zoox/oauth2/issues)
-[![Release](https://img.shields.io/github/tag/go-zoox/oauth2.svg?label=Release)](https://github.com/go-zoox/oauth2/tags)
+A Go implementation of the popular acme.sh shell script - an ACME client for obtaining SSL/TLS certificates from Let's Encrypt and other ACME-compatible Certificate Authorities.
+
+## Features
+
+- 🔒 **Multiple ACME CAs**: Support for Let's Encrypt, ZeroSSL, SSL.com, and other ACME-compatible CAs
+- 🌐 **Multiple Validation Methods**: HTTP-01, DNS-01, and TLS-ALPN-01 challenge types
+- 🚀 **DNS Provider Integration**: Support for popular DNS providers with API automation
+- 🔄 **Automatic Renewal**: Built-in certificate renewal with configurable schedules
+- 📦 **Deployment Hooks**: Flexible deployment system for various services
+- 🛠️ **Cross-Platform**: Works on Linux, macOS, and Windows
+- ⚡ **High Performance**: Written in Go for better performance and reliability
 
 ## Installation
-To install the package, run:
+
+### From Source
+
 ```bash
-go get github.com/go-zoox/oauth2
+git clone https://github.com/acme-go/acme-client.git
+cd acme-client
+go build -o acme-go
+sudo mv acme-go /usr/local/bin/
 ```
 
-## Getting Started
+### Using Go Install
 
-### Example 1: Using only one oauth2 provider => doreamon
-
-```go
-// step1: create oauth2 middleware/handler
-// file: oauth2.go
-import (
-	"log"
-	"net/http"
-	"regexp"
-	"time"
-
-	"github.com/go-zoox/logger"
-	"github.com/go-zoox/oauth2"
-	"github.com/go-zoox/oauth2/doreamon"
-)
-
-type CreateOAuth2DoreamonHandlerConfig struct {
-	ClientID     string
-	ClientSecret string
-	RedirectURI  string
-}
-
-func CreateOAuth2DoreamonHandler(cfg *CreateOAuth2DoreamonHandlerConfig) func(
-	w http.ResponseWriter,
-	r *http.Request,
-	CheckUser func(r *http.Request) error,
-	RemeberUser func(user *oauth2.User, token *oauth2.Token) error,
-	Next func() error,
-) error {
-	originPathCookieKey := "login_from"
-
-	client, err := doreamon.New(&doreamon.DoreamonConfig{
-		ClientID:     cfg.ClientID,
-		ClientSecret: cfg.ClientSecret,
-		RedirectURI:  cfg.RedirectURI,
-		Scope:        "using_doreamon",
-		Version:      "2",
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	return func(
-		w http.ResponseWriter,
-		r *http.Request,
-		RestoreUser func(r *http.Request) error,
-		SaveUser func(user *oauth2.User, token *oauth2.Token) error,
-		Next func() error,
-	) error {
-		if r.Method != "GET" {
-			return Next()
-		}
-		path := r.URL.Path
-
-		if path == "/login" {
-			client.Authorize("memos", func(loginUrl string) {
-				http.Redirect(w, r, loginUrl, http.StatusFound)
-			})
-			return nil
-		}
-
-		if path == "/logout" {
-			client.Logout(func(logoutUrl string) {
-				http.Redirect(w, r, logoutUrl, http.StatusFound)
-			})
-			return nil
-		}
-
-		if path == "/login/doreamon/callback" {
-			code := r.FormValue("code")
-			state := r.FormValue("state")
-
-			client.Callback(code, state, func(user *oauth2.User, token *oauth2.Token, err error) {
-				if err != nil {
-					log.Println("[OAUTH2] Login Callback Error", err)
-					time.Sleep(3 * time.Second)
-					http.Redirect(w, r, "/login", http.StatusFound)
-					return
-				}
-
-				if err := SaveUser(user, token); err != nil {
-					logger.Info("failed to save user: %#v", err)
-					time.Sleep(1)
-
-					w.WriteHeader(500)
-					w.Write([]byte("Failed to create user: " + user.Email))
-					return
-				}
-
-				http.Redirect(w, r, "/", http.StatusFound)
-			})
-
-			return nil
-		}
-
-		if matched, _ := regexp.MatchString("\\.(js|css|json)$", path); err == nil && matched {
-			return Next()
-		}
-
-		if err := RestoreUser(r); err != nil {
-			logger.Info("failed to restart user: %#v", err)
-			time.Sleep(1)
-			http.SetCookie(w, &http.Cookie{
-				Name:  "OriginPath",
-				Value: path,
-			})
-
-			http.Redirect(w, r, "/login", http.StatusFound)
-			return nil
-		}
-
-		// success
-		if OriginPath, err := r.Cookie(originPathCookieKey); err == nil && OriginPath.Value != "" {
-			time.Sleep(1)
-
-			http.SetCookie(w, &http.Cookie{
-				Name:    originPathCookieKey,
-				Value:   "",
-				Expires: time.Unix(0, 0),
-			})
-
-			http.Redirect(w, r, OriginPath.Value, http.StatusFound)
-			return nil
-		}
-
-		return Next()
-	}
-}
+```bash
+go install github.com/acme-go/acme-client@latest
 ```
 
-```go
-// step 2: use as go http middleware
-//  here is memos/echo
-e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-	if os.Getenv("DOREAMON_CLIENT_ID") == "" {
-		panic("env DOREAMON_CLIENT_ID is required")
-	}
-	if os.Getenv("DOREAMON_CLIENT_SECRET") == "" {
-		panic("env DOREAMON_CLIENT_SECRET is required")
-	}
-	if os.Getenv("DOREAMON_REDIRECT_URI") == "" {
-		panic("env DOREAMON_REDIRECT_URI is required")
-	}
+## Quick Start
 
-	handler := CreateOAuth2DoreamonHandler(&CreateOAuth2DoreamonHandlerConfig{
-		ClientID:     os.Getenv("DOREAMON_CLIENT_ID"),
-		ClientSecret: os.Getenv("DOREAMON_CLIENT_SECRET"),
-		RedirectURI:  os.Getenv("DOREAMON_REDIRECT_URI"),
-	})
+### 1. Issue a Certificate (HTTP Validation)
 
-	return func(c echo.Context) error {
-		return handler(
-			c.Response().Writer,
-			c.Request(),
-			func(r *http.Request) error {
-				userID, ok := getUserSession(c)
-				if !ok {
-					return fmt.Errorf("no user session found")
-				}
+```bash
+# Issue certificate using webroot validation
+acme-go issue -d example.com -w /var/www/html --email your@email.com
 
-				c.Set(getUserIDContextKey(), userID)
-				userFind := &api.UserFind{
-					ID: &userID,
-				}
-				_, err := s.Store.FindUser(c.Request().Context(), userFind)
-				if err != nil {
-					return err
-				}
-
-				return nil
-			},
-			func(user *oauth2.User, token *oauth2.Token) error {
-				ctx := c.Request().Context()
-				// Get Or Create User
-				userFind := &api.UserFind{
-					Username: &user.Email,
-				}
-				dbUser, err := s.Store.FindUser(ctx, userFind)
-				if err != nil || dbUser == nil {
-					role := api.Host
-					hostUserFind := api.UserFind{
-						Role: &role,
-					}
-					hostUser, err := s.Store.FindUser(ctx, &hostUserFind)
-					if err != nil {
-						return err
-					}
-					if hostUser != nil {
-						role = api.NormalUser
-					}
-
-					userCreate := &api.UserCreate{
-						Username: user.Email,
-						Role:     api.Role(role),
-						Nickname: user.Nickname,
-						Password: random.String(32),
-						OpenID:   common.GenUUID(),
-					}
-					dbUser, err = s.Store.CreateUser(ctx, userCreate)
-					if err != nil {
-						return err
-					}
-				}
-
-				if err = setUserSession(c, dbUser); err != nil {
-					return err
-				}
-
-				return nil
-			},
-			func() error {
-				return next(c)
-			},
-		)
-	}
-})
+# Issue certificate for multiple domains
+acme-go issue -d example.com -d www.example.com -w /var/www/html --email your@email.com
 ```
 
-### Example 2: Support multiple oauth2 providers: github, wechat, gitee, doreamon
+### 2. Issue a Certificate (DNS Validation)
 
-```go
-// @TODO connect
+```bash
+# Issue wildcard certificate using DNS validation
+acme-go issue -d "*.example.com" --dns dns_cf --email your@email.com
+
+# Issue certificate using manual DNS
+acme-go issue -d example.com --dns manual --email your@email.com
 ```
+
+### 3. Install Certificate
+
+```bash
+# Install certificate for nginx
+acme-go install-cert -d example.com \
+  --cert-file /etc/nginx/ssl/cert.pem \
+  --key-file /etc/nginx/ssl/key.pem \
+  --fullchain-file /etc/nginx/ssl/fullchain.pem \
+  --reload-cmd "systemctl reload nginx"
+```
+
+### 4. List Certificates
+
+```bash
+# List all certificates
+acme-go list
+
+# List in raw format
+acme-go list --raw
+```
+
+### 5. Renew Certificates
+
+```bash
+# Renew specific certificate
+acme-go renew -d example.com
+
+# Renew all certificates
+acme-go renew --all
+
+# Force renewal
+acme-go renew -d example.com --force
+```
+
+## Configuration
+
+acme-go uses a YAML configuration file located at `~/.acme-go.yaml`. Here's an example:
+
+```yaml
+email: your@email.com
+server: https://acme-v02.api.letsencrypt.org/directory
+staging: false
+cert_dir: /home/user/.acme-go
+key_type: ec-256
+renew_days: 30
+
+dns_providers:
+  dns_cf:
+    CF_API_KEY: your_cloudflare_api_key
+    CF_EMAIL: your_cloudflare_email
+  dns_ali:
+    ALICLOUD_ACCESS_KEY: your_access_key
+    ALICLOUD_SECRET_KEY: your_secret_key
+
+deploy_hooks:
+  nginx:
+    type: script
+    script: /usr/local/bin/deploy-nginx.sh
+  docker:
+    type: script
+    script: /usr/local/bin/deploy-docker.sh
+
+notifications:
+  enabled: true
+  type: email
+  settings:
+    smtp_server: smtp.gmail.com
+    smtp_port: "587"
+    username: your@email.com
+    password: your_app_password
+```
+
+## Supported DNS Providers
+
+- Cloudflare (`dns_cf`)
+- Alibaba Cloud (`dns_ali`)
+- Amazon Route53 (`dns_aws`)
+- Google Cloud DNS (`dns_gcloud`)
+- And many more...
+
+## Validation Methods
+
+### HTTP-01 Challenge
+
+```bash
+# Using webroot
+acme-go issue -d example.com -w /var/www/html
+
+# Using standalone mode (requires port 80)
+acme-go issue -d example.com --standalone
+```
+
+### DNS-01 Challenge
+
+```bash
+# Using DNS provider API
+acme-go issue -d example.com --dns dns_cf
+
+# Using manual DNS (you add TXT records manually)
+acme-go issue -d example.com --dns manual
+
+# Wildcard certificates (requires DNS validation)
+acme-go issue -d "*.example.com" --dns dns_cf
+```
+
+### TLS-ALPN-01 Challenge
+
+```bash
+# Using TLS-ALPN (requires port 443)
+acme-go issue -d example.com --alpn
+```
+
+## Key Types
+
+Supported key types:
+- `ec-256` (default) - ECDSA P-256
+- `ec-384` - ECDSA P-384
+- `rsa-2048` - RSA 2048-bit
+- `rsa-3072` - RSA 3072-bit
+- `rsa-4096` - RSA 4096-bit
+
+```bash
+# Issue certificate with RSA 4096-bit key
+acme-go issue -d example.com -w /var/www/html --key-type rsa-4096
+```
+
+## Deployment Hooks
+
+Deploy certificates automatically to various services:
+
+```bash
+# Deploy to nginx
+acme-go deploy -d example.com --deploy-hook nginx
+
+# Deploy to docker container
+acme-go deploy -d example.com --deploy-hook docker
+```
+
+## Automatic Renewal
+
+Set up automatic renewal using cron:
+
+```bash
+# Add to crontab (runs daily at 2 AM)
+0 2 * * * /usr/local/bin/acme-go renew --all
+```
+
+## Commands Reference
+
+### Global Flags
+
+- `--config`: Configuration file path
+- `--verbose`: Enable verbose output
+
+### issue
+
+Issue a new certificate.
+
+```bash
+acme-go issue [flags]
+```
+
+**Flags:**
+- `-d, --domain`: Domain name(s) (required)
+- `-w, --webroot`: Webroot path for HTTP-01 validation
+- `--dns`: DNS provider for DNS-01 validation
+- `--key-type`: Key type (default: ec-256)
+- `--email`: Email for account registration
+- `--server`: ACME server URL
+- `--staging`: Use staging environment
+- `--force`: Force issue even if certificate exists
+
+### renew
+
+Renew existing certificates.
+
+```bash
+acme-go renew [flags]
+```
+
+**Flags:**
+- `-d, --domain`: Domain name to renew
+- `--all`: Renew all certificates
+- `--force`: Force renewal even if not due
+
+### install-cert
+
+Install certificate to specified locations.
+
+```bash
+acme-go install-cert [flags]
+```
+
+**Flags:**
+- `-d, --domain`: Domain name (required)
+- `--cert-file`: Certificate file path
+- `--key-file`: Private key file path
+- `--ca-file`: CA certificate file path
+- `--fullchain-file`: Full certificate chain file path
+- `--reload-cmd`: Command to reload service
+
+### deploy
+
+Deploy certificate using deployment hooks.
+
+```bash
+acme-go deploy [flags]
+```
+
+**Flags:**
+- `-d, --domain`: Domain name (required)
+- `--deploy-hook`: Deployment hook name (required)
+
+### list
+
+List all certificates.
+
+```bash
+acme-go list [flags]
+```
+
+**Flags:**
+- `--raw`: Output in raw format
+
+## Comparison with acme.sh
+
+| Feature | acme.sh | acme-go |
+|---------|---------|---------|
+| Language | Shell Script | Go |
+| Performance | Good | Excellent |
+| Memory Usage | Low | Low |
+| Cross-platform | Yes | Yes |
+| DNS Providers | 100+ | Growing |
+| Deployment Hooks | 50+ | Growing |
+| Configuration | Shell variables | YAML file |
+| Error Handling | Basic | Advanced |
+| Logging | Basic | Structured |
+| Testing | Limited | Comprehensive |
+
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ## License
-GoZoox is released under the [MIT License](./LICENSE).
+
+This project is licensed under the GPL v3 License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- [acme.sh](https://github.com/acmesh-official/acme.sh) - The original shell script implementation
+- [lego](https://github.com/go-acme/lego) - Go ACME client library
+- [Let's Encrypt](https://letsencrypt.org/) - Free SSL/TLS certificates for everyone
+
+## Support
+
+- 📖 [Documentation](https://github.com/acme-go/acme-client/wiki)
+- 🐛 [Issue Tracker](https://github.com/acme-go/acme-client/issues)
+- 💬 [Discussions](https://github.com/acme-go/acme-client/discussions)
