@@ -130,7 +130,8 @@ func CreateOAuth2DoreamonHandler(cfg *CreateOAuth2DoreamonHandlerConfig) func(
 
 		if path == "/logout" {
 			logger.Infof("[oauth2] go logout ...")
-			client.Logout(func(logoutUrl string) {
+
+			client.Logout(cfg.ApplicationName, func(logoutUrl string) {
 				http.Redirect(w, r, logoutUrl, http.StatusFound)
 			})
 			return nil

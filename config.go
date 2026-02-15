@@ -112,13 +112,18 @@ func (oac *Config) generateLoginURL(state string) string {
 // generateLogoutURL gets the logout url.
 //
 // Example: https://login.example.com/logout?client_id=CLIENT_ID&redirect_uri=https%3A%2F%2Fabc.com%2Flogin/callback
-func (oac *Config) generateLogoutURL() string {
+func (oac *Config) generateLogoutURL(state string) string {
 	if oac.GetLogoutURL != nil {
 		return oac.GetLogoutURL(oac)
 	}
 
 	clientID := oac.ClientID
 	redirectURI := oac.RedirectURI // oac.ServerUrl + "/login/callback"
+	responseType := "code"
+	scope := oac.Scope
+	if scope == "" {
+		scope = "openid"
+	}
 
 	if oac.LogoutURL == "" {
 		return ""
@@ -128,6 +133,9 @@ func (oac *Config) generateLogoutURL() string {
 		oac.LogoutURL,
 		fmt.Sprintf("?%s=", oac.ClientIDAttributeName), clientID,
 		fmt.Sprintf("&%s=", oac.RedirectURIAttributeName), url.QueryEscape(redirectURI),
+		fmt.Sprintf("&%s=", oac.ResponseTypeAttributeName), responseType,
+		fmt.Sprintf("&%s=", oac.ScopeAttributeName), url.QueryEscape(scope),
+		fmt.Sprintf("&%s=", oac.StateAttributeName), url.QueryEscape(state),
 	}, "")
 }
 

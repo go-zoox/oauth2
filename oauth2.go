@@ -8,7 +8,7 @@ import (
 type Client interface {
 	Authorize(state string, callback func(loginUrl string))
 	Callback(code, state string, cb func(user *User, token *Token, err error))
-	Logout(callback func(logoutUrl string))
+	Logout(state string, callback func(logoutUrl string))
 	Register(callback func(registerUrl string))
 	//
 	RefreshToken(refreshToken string) (*Token, error)
@@ -67,8 +67,8 @@ func (oa *client) Callback(code, state string, cb func(user *User, token *Token,
 }
 
 // Logout just to logout the user
-func (oa *client) Logout(callback func(logoutUrl string)) {
-	callback(oa.generateLogoutURL())
+func (oa *client) Logout(state string, callback func(logoutUrl string)) {
+	callback(oa.generateLogoutURL(state))
 }
 
 // Register just to register
