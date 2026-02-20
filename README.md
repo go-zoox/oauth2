@@ -13,6 +13,73 @@ To install the package, run:
 go get github.com/go-zoox/oauth2
 ```
 
+## Supported Providers
+
+This library supports many OAuth2 providers, including:
+
+- **WebAuthn** - 🔐 Passwordless authentication with biometrics and security keys
+- **Supabase** - Full-featured authentication platform
+- **GitHub** - Version control and collaboration
+- **Google** - Google services authentication
+- **Auth0** - Identity and access management
+- **Microsoft Azure** - Microsoft cloud services
+- **Slack** - Team communication platform
+- **Discord** - Gaming and community communication
+- **Facebook** - Social networking
+- **GitLab** - DevOps platform
+- **Twitter** - Social media platform
+- **WeChat** - Chinese messaging platform
+- **Doreamon** - Custom authentication provider
+- And many more...
+
+### Supabase Provider
+
+The Supabase provider offers seamless integration with Supabase Auth:
+
+```go
+import "github.com/go-zoox/oauth2/supabase"
+
+// Create Supabase client
+client, err := supabase.New(&supabase.SupabaseConfig{
+    BaseURL:      "https://your-project.supabase.co",
+    ClientID:     "your-client-id",
+    ClientSecret: "your-client-secret",
+    RedirectURI:  "http://localhost:8080/auth/callback",
+    Scope:        "openid email profile",
+})
+```
+
+For detailed Supabase setup instructions, see the [Supabase provider documentation](supabase/README.md).
+
+### WebAuthn Provider
+
+The WebAuthn provider enables passwordless authentication using biometrics, security keys, and platform authenticators:
+
+```go
+import "github.com/go-zoox/oauth2/webauthn"
+
+// Create user and session stores
+userStore := webauthn.NewSimpleUserStore()
+sessionStore := webauthn.NewSimpleSessionStore()
+
+// Create WebAuthn client
+client, err := webauthn.New(&webauthn.WebAuthnConfig{
+    RPDisplayName: "Your App Name",
+    RPID:          "yourdomain.com",
+    RPOrigins:     []string{"https://yourdomain.com"},
+    UserStore:     userStore,
+    SessionStore:  sessionStore,
+})
+```
+
+WebAuthn supports:
+- 🔐 **Passwordless login** with fingerprint, face recognition, PIN
+- 🔑 **Hardware security keys** (YubiKey, SoloKey, etc.)
+- 📱 **Platform authenticators** (Windows Hello, Touch ID, etc.)
+- 🛡️ **Enhanced security** with phishing resistance
+
+For detailed WebAuthn setup instructions, see the [WebAuthn provider documentation](webauthn/README.md).
+
 ## Getting Started
 
 ### Example 1: Using only one oauth2 provider => doreamon
